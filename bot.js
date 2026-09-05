@@ -11,8 +11,6 @@ const FIREBASE_DATABASE_URL =
   process.env.FIREBASE_DATABASE_URL ||
   "https://stisait-23039-default-rtdb.firebaseio.com";
 
-// ID администратора Telegram.
-// Добавь переменную ADMIN_TELEGRAM_ID на Render.
 const ADMIN_TELEGRAM_ID =
   process.env.ADMIN_TELEGRAM_ID || "";
 
@@ -197,7 +195,6 @@ async function firebaseDelete(path) {
 // ======================================================
 
 function isAdmin(userId) {
-
   if (!ADMIN_TELEGRAM_ID) {
     return false;
   }
@@ -211,12 +208,10 @@ function isAdmin(userId) {
 // ======================================================
 
 bot.start(async (ctx) => {
-
   sessions.delete(ctx.from.id);
 
   await ctx.reply(
     "📸 Добро пожаловать в СТИ ФотоБот!\n\n" +
-
     "Здесь ты можешь отправлять фотографии " +
     "для фотоархива «Объектив техникума».\n\n" +
 
@@ -225,7 +220,6 @@ bot.start(async (ctx) => {
     "🗑️ Удалять свои публикации\n\n" +
 
     "Выбирай действие:",
-
     mainKeyboard()
   );
 });
@@ -235,7 +229,6 @@ bot.start(async (ctx) => {
 // ======================================================
 
 bot.command("publish", async (ctx) => {
-
   sessions.set(
     ctx.from.id,
     {
@@ -253,7 +246,6 @@ bot.command("publish", async (ctx) => {
 // ======================================================
 
 bot.action("publish", async (ctx) => {
-
   await ctx.answerCbQuery();
 
   sessions.set(
@@ -273,7 +265,6 @@ bot.action("publish", async (ctx) => {
 // ======================================================
 
 bot.on("photo", async (ctx) => {
-
   const userId =
     ctx.from.id;
 
@@ -284,7 +275,6 @@ bot.on("photo", async (ctx) => {
     !session ||
     session.step !== "photo"
   ) {
-
     await ctx.reply(
       "Сначала нажми «📸 Опубликовать фотографию»."
     );
@@ -315,7 +305,6 @@ bot.on("photo", async (ctx) => {
 // ======================================================
 
 bot.on("text", async (ctx) => {
-
   const userId =
     ctx.from.id;
 
@@ -329,10 +318,11 @@ bot.on("text", async (ctx) => {
     return;
   }
 
+  // ====================================================
   // CANCEL
+  // ====================================================
 
   if (text === "/cancel") {
-
     sessions.delete(userId);
 
     await ctx.reply(
@@ -343,10 +333,11 @@ bot.on("text", async (ctx) => {
     return;
   }
 
+  // ====================================================
   // TITLE
+  // ====================================================
 
   if (session.step === "title") {
-
     session.title =
       text.substring(0, 200);
 
@@ -361,10 +352,11 @@ bot.on("text", async (ctx) => {
     return;
   }
 
+  // ====================================================
   // AUTHOR
+  // ====================================================
 
   if (session.step === "author") {
-
     session.authorName =
       text.substring(0, 100);
 
@@ -379,7 +371,6 @@ bot.on("text", async (ctx) => {
       `👤 Автор: ${session.authorName}\n\n` +
 
       "Всё правильно?",
-
       confirmationKeyboard()
     );
 
@@ -394,7 +385,6 @@ bot.on("text", async (ctx) => {
 bot.action(
   /^category:(.+)$/,
   async (ctx) => {
-
     await ctx.answerCbQuery();
 
     const userId =
@@ -407,7 +397,6 @@ bot.action(
       !session ||
       session.step !== "category"
     ) {
-
       await ctx.reply(
         "⚠️ Публикация не найдена.\n\n" +
         "Начни заново: /publish"
@@ -435,7 +424,6 @@ bot.action(
 bot.action(
   "confirm_publish",
   async (ctx) => {
-
     await ctx.answerCbQuery();
 
     const userId =
@@ -448,7 +436,6 @@ bot.action(
       !session ||
       session.step !== "confirmation"
     ) {
-
       await ctx.reply(
         "⚠️ Данные публикации потерялись.\n\n" +
         "Начни заново: /publish"
@@ -460,7 +447,6 @@ bot.action(
     }
 
     const publication = {
-
       title:
         session.title,
 
@@ -487,7 +473,6 @@ bot.action(
     };
 
     try {
-
       console.log(
         "Сохраняем публикацию:"
       );
@@ -522,7 +507,6 @@ bot.action(
       );
 
     } catch (error) {
-
       console.error(
         "❌ ОШИБКА FIREBASE:",
         error
@@ -535,13 +519,10 @@ bot.action(
 
       await ctx.reply(
         "❌ Firebase не разрешил сохранить фотографию.\n\n" +
-
         "🔎 Точная ошибка:\n\n" +
-
         "```text\n" +
         errorText.substring(0, 3500) +
         "\n```",
-
         {
           parse_mode: "Markdown"
         }
@@ -557,7 +538,6 @@ bot.action(
 bot.action(
   "cancel_publish",
   async (ctx) => {
-
     await ctx.answerCbQuery();
 
     sessions.delete(
@@ -580,7 +560,6 @@ bot.action(
 // ======================================================
 
 async function getUserPublications(userId) {
-
   const data =
     await firebaseGet("photos");
 
@@ -589,14 +568,12 @@ async function getUserPublications(userId) {
   }
 
   return Object.entries(data)
-
     .map(
       ([id, item]) => ({
         id,
         ...(item || {})
       })
     )
-
     .filter(
       item =>
         String(
@@ -604,7 +581,6 @@ async function getUserPublications(userId) {
         ) ===
         String(userId)
     )
-
     .sort(
       (a, b) =>
         Number(
@@ -621,9 +597,7 @@ async function getUserPublications(userId) {
 // ======================================================
 
 async function showMyPhotos(ctx) {
-
   try {
-
     const publications =
       await getUserPublications(
         ctx.from.id
@@ -632,7 +606,6 @@ async function showMyPhotos(ctx) {
     if (
       publications.length === 0
     ) {
-
       await ctx.reply(
         "🖼️ У тебя пока нет публикаций."
       );
@@ -643,22 +616,20 @@ async function showMyPhotos(ctx) {
     await ctx.reply(
       `🖼️ Твои публикации: ${publications.length}\n\n` +
       "Выбери фотографию:",
+
       Markup.inlineKeyboard(
         publications
           .slice(0, 30)
           .map((item, index) => [
-
             Markup.button.callback(
               `${index + 1}. 📸 ${item.title || "Без названия"}`,
               `viewphoto:${item.id}`
             )
-
           ])
       )
     );
 
   } catch (error) {
-
     console.error(
       error
     );
@@ -677,9 +648,7 @@ async function showMyPhotos(ctx) {
 bot.command(
   "myphotos",
   async (ctx) => {
-
     await showMyPhotos(ctx);
-
   }
 );
 
@@ -690,11 +659,9 @@ bot.command(
 bot.action(
   "myphotos",
   async (ctx) => {
-
     await ctx.answerCbQuery();
 
     await showMyPhotos(ctx);
-
   }
 );
 
@@ -705,21 +672,18 @@ bot.action(
 bot.action(
   /^viewphoto:(.+)$/,
   async (ctx) => {
-
     await ctx.answerCbQuery();
 
     const photoId =
       ctx.match[1];
 
     try {
-
       const photo =
         await firebaseGet(
           `photos/${encodeURIComponent(photoId)}`
         );
 
       if (!photo) {
-
         await ctx.reply(
           "❌ Эта фотография уже удалена."
         );
@@ -741,7 +705,6 @@ bot.action(
         );
 
       if (!owner && !admin) {
-
         await ctx.reply(
           "❌ У тебя нет доступа к этой публикации."
         );
@@ -749,28 +712,27 @@ bot.action(
         return;
       }
 
-      const imageUrl =
-        `${getPublicBaseUrl(ctx)}/photo/${encodeURIComponent(photo.telegramFileId)}`;
+      // ВАЖНО:
+      // Используем ID записи Firebase,
+      // а не Telegram file_id.
 
+      const imageUrl =
+        `${getPublicBaseUrl()}/photo/${encodeURIComponent(photoId)}`;
 
       const buttons = [
-
         [
           Markup.button.callback(
             "🗑️ Удалить фотографию",
             `deletephoto:${photoId}`
           )
         ],
-
         [
           Markup.button.callback(
             "⬅️ Назад",
             "myphotos"
           )
         ]
-
       ];
-
 
       await ctx.replyWithPhoto(
         {
@@ -796,7 +758,6 @@ bot.action(
       );
 
     } catch (error) {
-
       console.error(
         "VIEW PHOTO ERROR:",
         error
@@ -817,21 +778,18 @@ bot.action(
 bot.action(
   /^deletephoto:(.+)$/,
   async (ctx) => {
-
     await ctx.answerCbQuery();
 
     const photoId =
       ctx.match[1];
 
     try {
-
       const photo =
         await firebaseGet(
           `photos/${encodeURIComponent(photoId)}`
         );
 
       if (!photo) {
-
         await ctx.reply(
           "❌ Фотография уже удалена."
         );
@@ -853,7 +811,6 @@ bot.action(
         );
 
       if (!owner && !admin) {
-
         await ctx.reply(
           "❌ Ты не можешь удалить эту фотографию."
         );
@@ -871,26 +828,22 @@ bot.action(
         "и больше не будет отображаться на сайте.",
 
         Markup.inlineKeyboard([
-
           [
             Markup.button.callback(
               "🗑️ Да, удалить",
               `confirmdelete:${photoId}`
             )
           ],
-
           [
             Markup.button.callback(
               "❌ Отмена",
               `canceldelete:${photoId}`
             )
           ]
-
         ])
       );
 
     } catch (error) {
-
       console.error(
         "DELETE CONFIRM ERROR:",
         error
@@ -911,7 +864,6 @@ bot.action(
 bot.action(
   /^confirmdelete:(.+)$/,
   async (ctx) => {
-
     await ctx.answerCbQuery(
       "Удаляем..."
     );
@@ -920,14 +872,12 @@ bot.action(
       ctx.match[1];
 
     try {
-
       const photo =
         await firebaseGet(
           `photos/${encodeURIComponent(photoId)}`
         );
 
       if (!photo) {
-
         await ctx.editMessageText(
           "❌ Фотография уже была удалена."
         );
@@ -949,7 +899,6 @@ bot.action(
         );
 
       if (!owner && !admin) {
-
         await ctx.editMessageText(
           "❌ У тебя нет прав на удаление этой фотографии."
         );
@@ -963,13 +912,11 @@ bot.action(
 
       await ctx.editMessageText(
         "🗑️ Фотография удалена.\n\n" +
-
         "Она больше не будет отображаться " +
         "в фотоархиве на сайте."
       );
 
     } catch (error) {
-
       console.error(
         "DELETE ERROR:",
         error
@@ -990,13 +937,11 @@ bot.action(
 bot.action(
   /^canceldelete:(.+)$/,
   async (ctx) => {
-
     await ctx.answerCbQuery();
 
     await ctx.editMessageText(
       "↩️ Удаление отменено."
     );
-
   }
 );
 
@@ -1007,13 +952,11 @@ bot.action(
 bot.command(
   "admin",
   async (ctx) => {
-
     if (
       !isAdmin(
         ctx.from.id
       )
     ) {
-
       await ctx.reply(
         "⛔ У тебя нет доступа к админ-панели."
       );
@@ -1022,14 +965,12 @@ bot.command(
     }
 
     try {
-
       const data =
         await firebaseGet(
           "photos"
         );
 
       if (!data) {
-
         await ctx.reply(
           "📭 В архиве пока нет фотографий."
         );
@@ -1039,14 +980,12 @@ bot.command(
 
       const publications =
         Object.entries(data)
-
           .map(
             ([id, item]) => ({
               id,
               ...(item || {})
             })
           )
-
           .sort(
             (a, b) =>
               Number(
@@ -1067,19 +1006,16 @@ bot.command(
             .slice(0, 50)
             .map(
               (item, index) => [
-
                 Markup.button.callback(
                   `${index + 1}. ${item.title || "Без названия"}`,
                   `adminphoto:${item.id}`
                 )
-
               ]
             )
         )
       );
 
     } catch (error) {
-
       await ctx.reply(
         "❌ Ошибка админ-панели:\n\n" +
         error.message
@@ -1095,7 +1031,6 @@ bot.command(
 bot.action(
   /^adminphoto:(.+)$/,
   async (ctx) => {
-
     await ctx.answerCbQuery();
 
     if (
@@ -1103,7 +1038,6 @@ bot.action(
         ctx.from.id
       )
     ) {
-
       await ctx.reply(
         "⛔ Нет доступа."
       );
@@ -1115,14 +1049,12 @@ bot.action(
       ctx.match[1];
 
     try {
-
       const photo =
         await firebaseGet(
           `photos/${encodeURIComponent(photoId)}`
         );
 
       if (!photo) {
-
         await ctx.reply(
           "❌ Фотография не найдена."
         );
@@ -1130,9 +1062,11 @@ bot.action(
         return;
       }
 
-      const imageUrl =
-        `${getPublicBaseUrl(ctx)}/photo/${encodeURIComponent(photo.telegramFileId)}`;
+      // ВАЖНО:
+      // Здесь тоже используем Firebase ID.
 
+      const imageUrl =
+        `${getPublicBaseUrl()}/photo/${encodeURIComponent(photoId)}`;
 
       await ctx.replyWithPhoto(
         {
@@ -1148,27 +1082,23 @@ bot.action(
             `🆔 ${photo.telegramUserId}`,
 
           ...Markup.inlineKeyboard([
-
             [
               Markup.button.callback(
                 "🗑️ Удалить",
                 `deletephoto:${photoId}`
               )
             ],
-
             [
               Markup.button.callback(
                 "⬅️ Назад",
                 "admin_back"
               )
             ]
-
           ])
         }
       );
 
     } catch (error) {
-
       await ctx.reply(
         "❌ Ошибка:\n\n" +
         error.message
@@ -1184,13 +1114,11 @@ bot.action(
 bot.action(
   "admin_back",
   async (ctx) => {
-
     await ctx.answerCbQuery();
 
     await ctx.reply(
       "👑 Для открытия админ-панели используй /admin"
     );
-
   }
 );
 
@@ -1201,7 +1129,6 @@ bot.action(
 bot.command(
   "help",
   async (ctx) => {
-
     await ctx.reply(
       "❓ Помощь\n\n" +
 
@@ -1218,7 +1145,6 @@ bot.command(
 bot.action(
   "help",
   async (ctx) => {
-
     await ctx.answerCbQuery();
 
     await ctx.reply(
@@ -1244,44 +1170,36 @@ bot.action(
 // PUBLIC URL
 // ======================================================
 
-function getPublicBaseUrl(ctx) {
-
-  // Если указать PUBLIC_URL на Render,
-  // используется он.
-
+function getPublicBaseUrl() {
   if (process.env.PUBLIC_URL) {
-
     return process.env.PUBLIC_URL
       .replace(/\/$/, "");
-
   }
-
-  // Render автоматически даёт
-  // RENDER_EXTERNAL_URL.
 
   if (process.env.RENDER_EXTERNAL_URL) {
-
     return process.env.RENDER_EXTERNAL_URL
       .replace(/\/$/, "");
-
   }
 
-  // Локальный вариант.
-
-  return "http://localhost:" +
+  return (
+    "http://localhost:" +
     (
       Number(process.env.PORT) ||
       10000
-    );
+    )
+  );
 }
 
 // ======================================================
-// ПОЛУЧЕНИЕ ФОТОГРАФИИ ИЗ TELEGRAM
+// ПОЛУЧЕНИЕ TELEGRAM FILE URL
 // ======================================================
 
-async function getTelegramFileUrl(
-  fileId
-) {
+async function getTelegramFileUrl(fileId) {
+  if (!fileId) {
+    throw new Error(
+      "telegramFileId отсутствует"
+    );
+  }
 
   const apiUrl =
     `https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${encodeURIComponent(fileId)}`;
@@ -1290,11 +1208,9 @@ async function getTelegramFileUrl(
     await fetch(apiUrl);
 
   if (!response.ok) {
-
     throw new Error(
       `Telegram getFile HTTP ${response.status}`
     );
-
   }
 
   const data =
@@ -1305,16 +1221,31 @@ async function getTelegramFileUrl(
     !data.result ||
     !data.result.file_path
   ) {
-
     throw new Error(
       "Telegram не вернул file_path"
     );
-
   }
 
   return (
     `https://api.telegram.org/file/bot${BOT_TOKEN}/${data.result.file_path}`
   );
+}
+
+// ======================================================
+// ПОЛУЧЕНИЕ ФОТО ПО FIREBASE ID
+// ======================================================
+
+async function getPhotoById(photoId) {
+  if (!photoId) {
+    return null;
+  }
+
+  const photo =
+    await firebaseGet(
+      `photos/${encodeURIComponent(photoId)}`
+    );
+
+  return photo;
 }
 
 // ======================================================
@@ -1331,15 +1262,23 @@ const server =
 
       try {
 
+        const requestUrl =
+          new URL(
+            req.url,
+            `http://${req.headers.host || "localhost"}`
+          );
+
+        const pathname =
+          requestUrl.pathname;
+
         // ==================================================
         // HEALTH CHECK
         // ==================================================
 
         if (
-          req.url === "/" ||
-          req.url === "/health"
+          pathname === "/" ||
+          pathname === "/health"
         ) {
-
           res.writeHead(
             200,
             {
@@ -1357,45 +1296,146 @@ const server =
 
         // ==================================================
         // ФОТО PROXY
+        //
+        // /photo/FIREBASE_ID
+        //
+        // Например:
+        // /photo/-P0lelUWhEQR-0HdmbyD
         // ==================================================
 
         if (
-          req.url.startsWith(
+          pathname.startsWith(
             "/photo/"
           )
         ) {
 
-          const fileId =
+          const photoId =
             decodeURIComponent(
-              req.url
-                .substring(
-                  "/photo/".length
-                )
-                .split("?")[0]
+              pathname.substring(
+                "/photo/".length
+              )
             );
 
-          if (!fileId) {
-
+          if (!photoId) {
             res.writeHead(
-              400
+              400,
+              {
+                "Content-Type":
+                  "text/plain; charset=utf-8"
+              }
             );
 
             res.end(
-              "File ID отсутствует"
+              "Firebase photo ID отсутствует"
             );
 
             return;
           }
 
           console.log(
-            "Получаем Telegram photo:",
-            fileId
+            "================================"
           );
+
+          console.log(
+            "📸 PHOTO PROXY"
+          );
+
+          console.log(
+            "Firebase ID:",
+            photoId
+          );
+
+          // ================================================
+          // 1. Получаем запись из Firebase
+          // ================================================
+
+          const photo =
+            await getPhotoById(
+              photoId
+            );
+
+          if (!photo) {
+            res.writeHead(
+              404,
+              {
+                "Content-Type":
+                  "text/plain; charset=utf-8"
+              }
+            );
+
+            res.end(
+              "Фотография не найдена"
+            );
+
+            return;
+          }
+
+          // ================================================
+          // Проверяем публикацию
+          // ================================================
+
+          if (
+            photo.status &&
+            photo.status !== "published"
+          ) {
+            res.writeHead(
+              404,
+              {
+                "Content-Type":
+                  "text/plain; charset=utf-8"
+              }
+            );
+
+            res.end(
+              "Фотография недоступна"
+            );
+
+            return;
+          }
+
+          // ================================================
+          // 2. Получаем Telegram file_id
+          // ================================================
+
+          const fileId =
+            photo.telegramFileId;
+
+          if (!fileId) {
+            res.writeHead(
+              404,
+              {
+                "Content-Type":
+                  "text/plain; charset=utf-8"
+              }
+            );
+
+            res.end(
+              "telegramFileId отсутствует"
+            );
+
+            return;
+          }
+
+          console.log(
+            "Telegram file_id найден"
+          );
+
+          // ================================================
+          // 3. Получаем Telegram file_path
+          // ================================================
 
           const telegramUrl =
             await getTelegramFileUrl(
               fileId
             );
+
+          console.log(
+            "Telegram file URL получен"
+          );
+
+          // ================================================
+          // 4. Загружаем изображение
+          // ================================================
 
           const imageResponse =
             await fetch(
@@ -1405,11 +1445,9 @@ const server =
           if (
             !imageResponse.ok
           ) {
-
             throw new Error(
               `Telegram image HTTP ${imageResponse.status}`
             );
-
           }
 
           const contentType =
@@ -1422,6 +1460,10 @@ const server =
             Buffer.from(
               await imageResponse.arrayBuffer()
             );
+
+          // ================================================
+          // 5. Отдаём изображение сайту
+          // ================================================
 
           res.writeHead(
             200,
@@ -1437,12 +1479,52 @@ const server =
 
               "Access-Control-Allow-Origin":
                 "*",
+
+              "Access-Control-Allow-Methods":
+                "GET, OPTIONS",
+
+              "Access-Control-Allow-Headers":
+                "Content-Type",
             }
           );
 
           res.end(
             buffer
           );
+
+          console.log(
+            "✅ Фото успешно отдано сайту"
+          );
+
+          console.log(
+            "================================"
+          );
+
+          return;
+        }
+
+        // ==================================================
+        // OPTIONS
+        // ==================================================
+
+        if (
+          req.method === "OPTIONS"
+        ) {
+          res.writeHead(
+            204,
+            {
+              "Access-Control-Allow-Origin":
+                "*",
+
+              "Access-Control-Allow-Methods":
+                "GET, OPTIONS",
+
+              "Access-Control-Allow-Headers":
+                "Content-Type",
+            }
+          );
+
+          res.end();
 
           return;
         }
@@ -1466,12 +1548,22 @@ const server =
       } catch (error) {
 
         console.error(
-          "HTTP ERROR:",
+          "================================"
+        );
+
+        console.error(
+          "❌ HTTP ERROR:"
+        );
+
+        console.error(
           error
         );
 
-        if (!res.headersSent) {
+        console.error(
+          "================================"
+        );
 
+        if (!res.headersSent) {
           res.writeHead(
             500,
             {
@@ -1479,7 +1571,6 @@ const server =
                 "text/plain; charset=utf-8",
             }
           );
-
         }
 
         res.end(
@@ -1499,13 +1590,25 @@ server.listen(
   () => {
 
     console.log(
+      "================================"
+    );
+
+    console.log(
       `🌐 Server started on port ${PORT}`
     );
 
     console.log(
-      `📸 Photo proxy: /photo/:fileId`
+      `📸 Photo proxy: /photo/:photoId`
     );
 
+    console.log(
+      "🔥 Firebase:",
+      FIREBASE_DATABASE_URL
+    );
+
+    console.log(
+      "================================"
+    );
   }
 );
 
@@ -1538,9 +1641,18 @@ bot.launch()
       );
 
       console.log(
-        "================================"
+        "🌐 Public URL:",
+        getPublicBaseUrl()
       );
 
+      console.log(
+        "📸 Photo proxy:",
+        `${getPublicBaseUrl()}/photo/:photoId`
+      );
+
+      console.log(
+        "================================"
+      );
     }
   )
   .catch(
@@ -1552,7 +1664,6 @@ bot.launch()
       );
 
       process.exit(1);
-
     }
   );
 
