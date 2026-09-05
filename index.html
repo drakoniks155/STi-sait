@@ -1,775 +1,774 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#08080b">
-  <meta name="description" content="Объектив техникума — фотоархив Советского техникума-интерната в городе Советске.">
-  <title>Объектив техникума — СТИ</title>
-
-  <style>
-    :root {
-      --bg: #08080b;
-      --panel: #111116;
-      --panel2: #17171e;
-      --text: #f5f5f7;
-      --muted: #92929e;
-      --line: rgba(255,255,255,.09);
-      --accent: #a970ff;
-      --accent2: #6c5ce7;
-      --danger: #ff5c7a;
-      --radius: 24px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at 15% 0%, rgba(133,91,255,.16), transparent 32%),
-        radial-gradient(circle at 90% 15%, rgba(72,91,255,.10), transparent 28%),
-        var(--bg);
-      color: var(--text);
-      font-family:
-        Inter,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: .035;
-      background-image:
-        url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
-      z-index: 1000;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    button,
-    input {
-      font: inherit;
-    }
-
-    button {
-      border: 0;
-      cursor: pointer;
-    }
-
-    .container {
-      width: min(1180px, calc(100% - 32px));
-      margin: auto;
-    }
-
-    /* HEADER */
-
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      backdrop-filter: blur(20px);
-      background: rgba(8,8,11,.72);
-      border-bottom: 1px solid var(--line);
-    }
-
-    .nav {
-      height: 76px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 800;
-      letter-spacing: -.03em;
-    }
-
-    .brand-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      box-shadow: 0 10px 35px rgba(130,95,255,.25);
-      font-size: 21px;
-    }
-
-    .brand span {
-      font-size: 16px;
-    }
-
-    nav {
-      display: flex;
-      gap: 7px;
-      align-items: center;
-    }
-
-    nav button {
-      background: transparent;
-      color: var(--muted);
-      padding: 10px 13px;
-      border-radius: 12px;
-      transition: .2s;
-    }
-
-    nav button:hover,
-    nav button.active {
-      color: var(--text);
-      background: rgba(255,255,255,.07);
-    }
-
-    .bot-btn {
-      padding: 11px 15px;
-      border-radius: 13px;
-      color: white;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      font-weight: 700;
-      box-shadow: 0 10px 30px rgba(118,92,240,.2);
-      transition: .2s;
-    }
-
-    .bot-btn:hover {
-      transform: translateY(-2px);
-    }
-
-    /* MAIN */
-
-    main {
-      padding-bottom: 100px;
-    }
-
-    .hero {
-      padding: 74px 0 42px;
-      display: grid;
-      grid-template-columns: 1.15fr .85fr;
-      gap: 34px;
-      align-items: center;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: #c9b6ff;
-      background: rgba(169,112,255,.1);
-      border: 1px solid rgba(169,112,255,.22);
-      padding: 8px 12px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    h1 {
-      font-size: clamp(42px, 7vw, 82px);
-      line-height: .93;
-      letter-spacing: -.065em;
-      margin: 22px 0 20px;
-      max-width: 850px;
-    }
-
-    .gradient {
-      background:
-        linear-gradient(
-          100deg,
-          #fff 20%,
-          #c9a7ff 65%,
-          #7c70ff
-        );
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .hero p {
-      color: var(--muted);
-      font-size: 18px;
-      line-height: 1.65;
-      max-width: 650px;
-    }
-
-    .hero-actions {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 28px;
-    }
-
-    .primary,
-    .secondary {
-      padding: 14px 18px;
-      border-radius: 15px;
-      font-weight: 750;
-      transition: .2s;
-    }
-
-    .primary {
-      color: #fff;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-    }
-
-    .secondary {
-      color: var(--text);
-      background: rgba(255,255,255,.06);
-      border: 1px solid var(--line);
-    }
-
-    .primary:hover,
-    .secondary:hover {
-      transform: translateY(-2px);
-    }
-
-    /* HERO CAMERA */
-
-    .hero-card {
-      position: relative;
-      min-height: 410px;
-      border-radius: 30px;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      background: linear-gradient(145deg,#19151f,#0e0e13);
-      box-shadow: 0 30px 90px rgba(0,0,0,.45);
-    }
-
-    .hero-card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(
-          circle at 35% 30%,
-          rgba(184,128,255,.45),
-          transparent 24%
-        ),
-        radial-gradient(
-          circle at 75% 75%,
-          rgba(88,105,255,.3),
-          transparent 25%
-        ),
-        linear-gradient(
-          145deg,
-          rgba(255,255,255,.05),
-          transparent 45%
-        );
-    }
-
-    .lens {
-      position: absolute;
-      width: 235px;
-      height: 235px;
-      border-radius: 50%;
-      left: 50%;
-      top: 45%;
-      transform: translate(-50%,-50%);
-      border: 12px solid #25252d;
-      background:
-        radial-gradient(
-          circle,
-          #07070a 0 27%,
-          #1e1830 28% 42%,
-          #050507 43% 62%,
-          #33215d 63% 67%,
-          #08080b 68%
-        );
-      box-shadow:
-        0 0 0 2px #4b4657,
-        0 0 70px rgba(154,103,255,.32);
-    }
-
-    .lens::after {
-      content: "";
-      position: absolute;
-      width: 25px;
-      height: 25px;
-      border-radius: 50%;
-      background: white;
-      opacity: .8;
-      left: 43px;
-      top: 39px;
-      filter: blur(3px);
-    }
-
-    .hero-card-title {
-      position: absolute;
-      left: 28px;
-      right: 28px;
-      bottom: 25px;
-      font-size: 14px;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      color: #aaa6b4;
-    }
-
-    /* SECTIONS */
-
-    section {
-      padding: 30px 0;
-    }
-
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: end;
-      gap: 15px;
-      margin-bottom: 18px;
-    }
-
-    .section-head h2 {
-      font-size: 28px;
-      letter-spacing: -.04em;
-    }
-
-    .section-head p {
-      color: var(--muted);
-      font-size: 14px;
-      margin-top: 5px;
-    }
-
-    /* SEARCH */
-
-    .search {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 13px 15px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: rgba(255,255,255,.045);
-      margin: 10px 0 18px;
-    }
-
-    .search input {
-      width: 100%;
-      background: none;
-      border: 0;
-      outline: 0;
-      color: var(--text);
-    }
-
-    .search input::placeholder {
-      color: #6e6e78;
-    }
-
-    /* CATEGORIES */
-
-    .categories {
-      display: flex;
-      gap: 10px;
-      overflow: auto;
-      padding-bottom: 5px;
-      scrollbar-width: none;
-    }
-
-    .categories::-webkit-scrollbar {
-      display: none;
-    }
-
-    .cat {
-      white-space: nowrap;
-      padding: 11px 14px;
-      border-radius: 14px;
-      color: var(--muted);
-      background: rgba(255,255,255,.045);
-      border: 1px solid var(--line);
-      transition: .2s;
-    }
-
-    .cat:hover,
-    .cat.active {
-      color: #fff;
-      background: rgba(169,112,255,.16);
-      border-color: rgba(169,112,255,.32);
-    }
-
-    /* GRID */
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(4,1fr);
-      gap: 14px;
-    }
-
-    .photo {
-      position: relative;
-      aspect-ratio: 1/1;
-      border-radius: 20px;
-      overflow: hidden;
-      background: #141419;
-      border: 1px solid var(--line);
-      cursor: pointer;
-      animation: rise .5s ease both;
-    }
-
-    .photo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transition: .5s;
-      background: #101014;
-    }
-
-    .photo:hover img {
-      transform: scale(1.06);
-    }
-
-    .photo::after {
-      content: "";
-      position: absolute;
-      inset: 45% 0 0;
-      background: linear-gradient(
-        transparent,
-        rgba(0,0,0,.75)
-      );
-      pointer-events: none;
-    }
-
-    .photo-info {
-      position: absolute;
-      left: 14px;
-      right: 14px;
-      bottom: 13px;
-      z-index: 2;
-    }
-
-    .photo-title {
-      font-weight: 750;
-      font-size: 14px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .photo-author {
-      color: #c8c8cf;
-      font-size: 12px;
-      margin-top: 4px;
-    }
-
-    .photo-category {
-      color: #b99cff;
-      font-size: 11px;
-      margin-top: 3px;
-    }
-
-    /* EMPTY */
-
-    .empty {
-      grid-column: 1/-1;
-      padding: 55px 20px;
-      text-align: center;
-      border: 1px dashed var(--line);
-      border-radius: 22px;
-      color: var(--muted);
-    }
-
-    .empty strong {
-      display: block;
-      color: var(--text);
-      font-size: 18px;
-      margin-bottom: 7px;
-    }
-
-    .loader {
-      width: 35px;
-      height: 35px;
-      margin: 0 auto 15px;
-      border-radius: 50%;
-      border: 3px solid rgba(255,255,255,.1);
-      border-top-color: var(--accent);
-      animation: spin .8s linear infinite;
-    }
-
-    /* ABOUT */
-
-    .about-card {
-      padding: 28px;
-      border: 1px solid var(--line);
-      border-radius: 25px;
-      background:
-        linear-gradient(
-          145deg,
-          rgba(255,255,255,.055),
-          rgba(255,255,255,.02)
-        );
-    }
-
-    .about-card p {
-      color: var(--muted);
-      line-height: 1.75;
-      max-width: 780px;
-    }
-
-    .stats {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 20px;
-    }
-
-    .stat {
-      padding: 13px 16px;
-      border-radius: 15px;
-      background: rgba(255,255,255,.045);
-      border: 1px solid var(--line);
-    }
-
-    .stat b {
-      display: block;
-      font-size: 20px;
-    }
-
-    .stat span {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    /* FOOTER */
-
-    footer {
-      border-top: 1px solid var(--line);
-      padding: 30px 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    footer .container {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-
-    /* MODAL */
-
-    .modal {
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      display: none;
-      place-items: center;
-      background: rgba(0,0,0,.82);
-      backdrop-filter: blur(14px);
-      padding: 20px;
-    }
-
-    .modal.show {
-      display: grid;
-    }
-
-    .viewer {
-      position: relative;
-      width: min(1000px,100%);
-      max-height: 92vh;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .viewer img {
-      width: 100%;
-      max-height: 72vh;
-      object-fit: contain;
-      border-radius: 20px;
-      background: #050507;
-    }
-
-    .viewer-info {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-      align-items: center;
-    }
-
-    .viewer-info small {
-      color: var(--muted);
-      display: block;
-      margin-top: 5px;
-    }
-
-    .close {
-      position: absolute;
-      right: 0;
-      top: -48px;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      color: #fff;
-      background: rgba(255,255,255,.1);
-      font-size: 20px;
-    }
-
-    .download {
-      padding: 10px 14px;
-      border-radius: 12px;
-      background: #fff;
-      color: #111;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    /* TOAST */
-
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: 25px;
-      z-index: 150;
-      transform: translate(-50%,20px);
-      opacity: 0;
-      pointer-events: none;
-      padding: 12px 16px;
-      border-radius: 14px;
-      background: #19191f;
-      border: 1px solid var(--line);
-      transition: .25s;
-      color: #fff;
-      max-width: calc(100% - 30px);
-      text-align: center;
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translate(-50%,0);
-    }
-
-    /* ANIMATIONS */
-
-    @keyframes rise {
-      from {
-        opacity: 0;
-        transform: translateY(14px);
-      }
-      to {
-        opacity: 1;
-        transform: none;
-      }
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* RESPONSIVE */
-
-    @media(max-width:900px) {
-      nav {
-        display: none;
-      }
-
-      .hero {
-        grid-template-columns: 1fr;
-        padding-top: 45px;
-      }
-
-      .hero-card {
-        min-height: 300px;
-      }
-
-      .grid {
-        grid-template-columns: repeat(3,1fr);
-      }
-    }
-
-    @media(max-width:600px) {
-      .container {
-        width: min(100% - 20px,1180px);
-      }
-
-      .nav {
-        height: 65px;
-      }
-
-      .brand span {
-        font-size: 14px;
-      }
-
-      .brand-icon {
-        width: 39px;
-        height: 39px;
-      }
-
-      .bot-btn {
-        font-size: 12px;
-        padding: 10px 12px;
-      }
-
-      .hero {
-        padding-top: 35px;
-      }
-
-      .hero p {
-        font-size: 15px;
-      }
-
-      .hero-card {
-        min-height: 250px;
-      }
-
-      .lens {
-        width: 150px;
-        height: 150px;
-      }
-
-      h1 {
-        font-size: 48px;
-      }
-
-      .grid {
-        grid-template-columns: repeat(2,1fr);
-        gap: 9px;
-      }
-
-      .photo {
-        border-radius: 15px;
-      }
-
-      .photo-info {
-        left: 10px;
-        right: 10px;
-        bottom: 10px;
-      }
-
-      .section-head h2 {
-        font-size: 23px;
-      }
-
-      .viewer-info {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .download {
-        width: 100%;
-        text-align: center;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#08080b">
+<meta name="description" content="Объектив техникума — фотоархив Советского техникума-интерната в городе Советске.">
+<title>Объектив техникума — СТИ</title>
+
+<style>
+:root{
+  --bg:#08080b;
+  --panel:#111116;
+  --panel2:#17171e;
+  --text:#f5f5f7;
+  --muted:#92929e;
+  --line:rgba(255,255,255,.09);
+  --accent:#a970ff;
+  --accent2:#6c5ce7;
+  --danger:#ff5c7a;
+  --radius:24px;
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 15% 0%,rgba(133,91,255,.16),transparent 32%),
+    radial-gradient(circle at 90% 15%,rgba(72,91,255,.10),transparent 28%),
+    var(--bg);
+  color:var(--text);
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  overflow-x:hidden;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
+  z-index:1000;
+}
+
+a{
+  color:inherit;
+  text-decoration:none;
+}
+
+button,
+input{
+  font:inherit;
+}
+
+button{
+  border:0;
+  cursor:pointer;
+}
+
+.container{
+  width:min(1180px,calc(100% - 32px));
+  margin:auto;
+}
+
+/* HEADER */
+
+header{
+  position:sticky;
+  top:0;
+  z-index:50;
+  backdrop-filter:blur(20px);
+  background:rgba(8,8,11,.72);
+  border-bottom:1px solid var(--line);
+}
+
+.nav{
+  height:76px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+
+.brand-icon{
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  box-shadow:0 10px 35px rgba(130,95,255,.25);
+  font-size:21px;
+}
+
+.brand span{
+  font-size:16px;
+}
+
+nav{
+  display:flex;
+  gap:7px;
+  align-items:center;
+}
+
+nav button{
+  background:transparent;
+  color:var(--muted);
+  padding:10px 13px;
+  border-radius:12px;
+  transition:.2s;
+}
+
+nav button:hover,
+nav button.active{
+  color:var(--text);
+  background:rgba(255,255,255,.07);
+}
+
+.bot-btn{
+  padding:11px 15px;
+  border-radius:13px;
+  color:#fff;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  font-weight:700;
+  box-shadow:0 10px 30px rgba(118,92,240,.2);
+  transition:.2s;
+}
+
+.bot-btn:hover{
+  transform:translateY(-2px);
+}
+
+/* MAIN */
+
+main{
+  padding-bottom:100px;
+}
+
+.hero{
+  padding:74px 0 42px;
+  display:grid;
+  grid-template-columns:1.15fr .85fr;
+  gap:34px;
+  align-items:center;
+}
+
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color:#c9b6ff;
+  background:rgba(169,112,255,.1);
+  border:1px solid rgba(169,112,255,.22);
+  padding:8px 12px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:700;
+}
+
+h1{
+  font-size:clamp(42px,7vw,82px);
+  line-height:.93;
+  letter-spacing:-.065em;
+  margin:22px 0 20px;
+  max-width:850px;
+}
+
+.gradient{
+  background:linear-gradient(100deg,#fff 20%,#c9a7ff 65%,#7c70ff);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.hero p{
+  color:var(--muted);
+  font-size:18px;
+  line-height:1.65;
+  max-width:650px;
+}
+
+.hero-actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:28px;
+}
+
+.primary,
+.secondary{
+  padding:14px 18px;
+  border-radius:15px;
+  font-weight:750;
+  transition:.2s;
+}
+
+.primary{
+  color:#fff;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+}
+
+.secondary{
+  color:var(--text);
+  background:rgba(255,255,255,.06);
+  border:1px solid var(--line);
+}
+
+.primary:hover,
+.secondary:hover{
+  transform:translateY(-2px);
+}
+
+/* HERO CAMERA */
+
+.hero-card{
+  position:relative;
+  min-height:410px;
+  border-radius:30px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:linear-gradient(145deg,#19151f,#0e0e13);
+  box-shadow:0 30px 90px rgba(0,0,0,.45);
+}
+
+.hero-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 35% 30%,rgba(184,128,255,.45),transparent 24%),
+    radial-gradient(circle at 75% 75%,rgba(88,105,255,.3),transparent 25%),
+    linear-gradient(145deg,rgba(255,255,255,.05),transparent 45%);
+}
+
+.lens{
+  position:absolute;
+  width:235px;
+  height:235px;
+  border-radius:50%;
+  left:50%;
+  top:45%;
+  transform:translate(-50%,-50%);
+  border:12px solid #25252d;
+  background:
+    radial-gradient(circle,
+      #07070a 0 27%,
+      #1e1830 28% 42%,
+      #050507 43% 62%,
+      #33215d 63% 67%,
+      #08080b 68%);
+  box-shadow:
+    0 0 0 2px #4b4657,
+    0 0 70px rgba(154,103,255,.32);
+}
+
+.lens::after{
+  content:"";
+  position:absolute;
+  width:25px;
+  height:25px;
+  border-radius:50%;
+  background:#fff;
+  opacity:.8;
+  left:43px;
+  top:39px;
+  filter:blur(3px);
+}
+
+.hero-card-title{
+  position:absolute;
+  left:28px;
+  right:28px;
+  bottom:25px;
+  font-size:14px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:#aaa6b4;
+}
+
+/* SECTIONS */
+
+section{
+  padding:30px 0;
+}
+
+.section-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  gap:15px;
+  margin-bottom:18px;
+}
+
+.section-head h2{
+  font-size:28px;
+  letter-spacing:-.04em;
+}
+
+.section-head p{
+  color:var(--muted);
+  font-size:14px;
+  margin-top:5px;
+}
+
+/* SEARCH */
+
+.search{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:13px 15px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:rgba(255,255,255,.045);
+  margin:10px 0 18px;
+}
+
+.search input{
+  width:100%;
+  background:none;
+  border:0;
+  outline:0;
+  color:var(--text);
+}
+
+.search input::placeholder{
+  color:#6e6e78;
+}
+
+/* CATEGORIES */
+
+.categories{
+  display:flex;
+  gap:10px;
+  overflow:auto;
+  padding-bottom:5px;
+  scrollbar-width:none;
+}
+
+.categories::-webkit-scrollbar{
+  display:none;
+}
+
+.cat{
+  white-space:nowrap;
+  padding:11px 14px;
+  border-radius:14px;
+  color:var(--muted);
+  background:rgba(255,255,255,.045);
+  border:1px solid var(--line);
+  transition:.2s;
+}
+
+.cat:hover,
+.cat.active{
+  color:#fff;
+  background:rgba(169,112,255,.16);
+  border-color:rgba(169,112,255,.32);
+}
+
+/* GRID */
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+}
+
+.photo{
+  position:relative;
+  aspect-ratio:1/1;
+  border-radius:20px;
+  overflow:hidden;
+  background:#141419;
+  border:1px solid var(--line);
+  cursor:pointer;
+  animation:rise .5s ease both;
+}
+
+.photo img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  transition:.5s;
+  background:#101014;
+}
+
+.photo:hover img{
+  transform:scale(1.06);
+}
+
+.photo::after{
+  content:"";
+  position:absolute;
+  inset:45% 0 0;
+  background:linear-gradient(transparent,rgba(0,0,0,.75));
+  pointer-events:none;
+}
+
+.photo-info{
+  position:absolute;
+  left:14px;
+  right:14px;
+  bottom:13px;
+  z-index:2;
+}
+
+.photo-title{
+  font-weight:750;
+  font-size:14px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.photo-author{
+  color:#c8c8cf;
+  font-size:12px;
+  margin-top:4px;
+}
+
+.photo-category{
+  color:#b99cff;
+  font-size:11px;
+  margin-top:3px;
+}
+
+/* EMPTY */
+
+.empty{
+  grid-column:1/-1;
+  padding:55px 20px;
+  text-align:center;
+  border:1px dashed var(--line);
+  border-radius:22px;
+  color:var(--muted);
+}
+
+.empty strong{
+  display:block;
+  color:var(--text);
+  font-size:18px;
+  margin-bottom:7px;
+}
+
+.loader{
+  width:35px;
+  height:35px;
+  margin:0 auto 15px;
+  border-radius:50%;
+  border:3px solid rgba(255,255,255,.1);
+  border-top-color:var(--accent);
+  animation:spin .8s linear infinite;
+}
+
+/* ABOUT */
+
+.about-card{
+  padding:28px;
+  border:1px solid var(--line);
+  border-radius:25px;
+  background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.02));
+}
+
+.about-card p{
+  color:var(--muted);
+  line-height:1.75;
+  max-width:780px;
+}
+
+.stats{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:20px;
+}
+
+.stat{
+  padding:13px 16px;
+  border-radius:15px;
+  background:rgba(255,255,255,.045);
+  border:1px solid var(--line);
+}
+
+.stat b{
+  display:block;
+  font-size:20px;
+}
+
+.stat span{
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* FOOTER */
+
+footer{
+  border-top:1px solid var(--line);
+  padding:30px 0;
+  color:var(--muted);
+  font-size:13px;
+}
+
+footer .container{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  flex-wrap:wrap;
+}
+
+/* MODAL */
+
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  display:none;
+  place-items:center;
+  background:rgba(0,0,0,.82);
+  backdrop-filter:blur(14px);
+  padding:20px;
+}
+
+.modal.show{
+  display:grid;
+}
+
+.viewer{
+  position:relative;
+  width:min(1000px,100%);
+  max-height:92vh;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.viewer img{
+  width:100%;
+  max-height:72vh;
+  object-fit:contain;
+  border-radius:20px;
+  background:#050507;
+}
+
+.viewer-info{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+
+.viewer-info small{
+  color:var(--muted);
+  display:block;
+  margin-top:5px;
+}
+
+.close{
+  position:absolute;
+  right:0;
+  top:-48px;
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  color:#fff;
+  background:rgba(255,255,255,.1);
+  font-size:20px;
+}
+
+.download{
+  padding:10px 14px;
+  border-radius:12px;
+  background:#fff;
+  color:#111;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+/* TOAST */
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:25px;
+  z-index:150;
+  transform:translate(-50%,20px);
+  opacity:0;
+  pointer-events:none;
+  padding:12px 16px;
+  border-radius:14px;
+  background:#19191f;
+  border:1px solid var(--line);
+  transition:.25s;
+  color:#fff;
+  max-width:calc(100% - 30px);
+  text-align:center;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translate(-50%,0);
+}
+
+/* ERROR IMAGE */
+
+.image-error{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  text-align:center;
+  color:#92929e;
+  background:#111116;
+  z-index:1;
+}
+
+.image-error div{
+  font-size:30px;
+  margin-bottom:8px;
+}
+
+.image-error span{
+  display:block;
+  font-size:12px;
+}
+
+/* ANIMATIONS */
+
+@keyframes rise{
+  from{
+    opacity:0;
+    transform:translateY(14px);
+  }
+  to{
+    opacity:1;
+    transform:none;
+  }
+}
+
+@keyframes spin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+/* RESPONSIVE */
+
+@media(max-width:900px){
+
+  nav{
+    display:none;
+  }
+
+  .hero{
+    grid-template-columns:1fr;
+    padding-top:45px;
+  }
+
+  .hero-card{
+    min-height:300px;
+  }
+
+  .grid{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+}
+
+@media(max-width:600px){
+
+  .container{
+    width:min(100% - 20px,1180px);
+  }
+
+  .nav{
+    height:65px;
+  }
+
+  .brand span{
+    font-size:14px;
+  }
+
+  .brand-icon{
+    width:39px;
+    height:39px;
+  }
+
+  .bot-btn{
+    font-size:12px;
+    padding:10px 12px;
+  }
+
+  .hero{
+    padding-top:35px;
+  }
+
+  .hero p{
+    font-size:15px;
+  }
+
+  .hero-card{
+    min-height:250px;
+  }
+
+  .lens{
+    width:150px;
+    height:150px;
+  }
+
+  h1{
+    font-size:48px;
+  }
+
+  .grid{
+    grid-template-columns:repeat(2,1fr);
+    gap:9px;
+  }
+
+  .photo{
+    border-radius:15px;
+  }
+
+  .photo-info{
+    left:10px;
+    right:10px;
+    bottom:10px;
+  }
+
+  .section-head h2{
+    font-size:23px;
+  }
+
+  .viewer-info{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .download{
+    width:100%;
+    text-align:center;
+  }
+
+}
+</style>
 </head>
 
 <body>
@@ -804,1239 +803,1310 @@
 
 <main id="home">
 
-  <div class="container">
+<div class="container">
 
-    <!-- HERO -->
+<section class="hero">
 
-    <section class="hero">
+<div>
 
-      <div>
+<span class="eyebrow">
+📸 Фотоархив СТИ
+</span>
 
-        <span class="eyebrow">
-          📸 Фотоархив СТИ
-        </span>
+<h1>
+Моменты,<br>
+которые остаются.<br>
+<span class="gradient">
+Наша история в кадре.
+</span>
+</h1>
 
-        <h1>
-          Моменты,<br>
-          которые остаются.<br>
-          <span class="gradient">
-            Наша история в кадре.
-          </span>
-        </h1>
+<p>
+Здесь живут фотографии Советского
+техникума-интерната — студенты,
+преподаватели, прогулки, спорт,
+творчество и просто моменты,
+которые хочется сохранить.
+</p>
 
-        <p>
-          Здесь живут фотографии Советского
-          техникума-интерната — студенты,
-          преподаватели, прогулки, спорт,
-          творчество и просто моменты,
-          которые хочется сохранить.
-        </p>
+<div class="hero-actions">
 
-        <div class="hero-actions">
+<button
+class="primary"
+data-scroll="#photos"
+>
+Смотреть галерею →
+</button>
 
-          <button
-            class="primary"
-            data-scroll="#photos"
-          >
-            Смотреть галерею →
-          </button>
+<button
+class="secondary"
+data-scroll="#about"
+>
+О проекте
+</button>
 
-          <button
-            class="secondary"
-            data-scroll="#about"
-          >
-            О проекте
-          </button>
+</div>
 
-        </div>
+</div>
 
-      </div>
 
+<div class="hero-card" aria-hidden="true">
 
-      <div
-        class="hero-card"
-        aria-hidden="true"
-      >
-        <div class="lens"></div>
+<div class="lens"></div>
 
-        <div class="hero-card-title">
-          СТИ • ФОТО • ПАМЯТЬ
-        </div>
-      </div>
+<div class="hero-card-title">
+СТИ • ФОТО • ПАМЯТЬ
+</div>
 
-    </section>
+</div>
 
+</section>
 
-    <!-- PHOTOS -->
 
-    <section id="photos">
+<section id="photos">
 
-      <div class="section-head">
+<div class="section-head">
 
-        <div>
+<div>
 
-          <h2>
-            📸 Галерея
-          </h2>
+<h2>
+📸 Галерея
+</h2>
 
-          <p id="resultText">
-            Загружаем фотографии…
-          </p>
+<p id="resultText">
+Загружаем фотографии…
+</p>
 
-        </div>
+</div>
 
-      </div>
+</div>
 
 
-      <label class="search">
+<label class="search">
 
-        🔎
+🔎
 
-        <input
-          id="searchInput"
-          type="search"
-          placeholder="Найти по названию или автору…"
-          autocomplete="off"
-        >
+<input
+id="searchInput"
+type="search"
+placeholder="Найти по названию или автору…"
+autocomplete="off"
+>
 
-      </label>
+</label>
 
 
-      <div
-        class="categories"
-        id="categories"
-      >
+<div
+class="categories"
+id="categories"
+>
 
-        <button
-          class="cat active"
-          data-category="all"
-        >
-          Все
-        </button>
+<button
+class="cat active"
+data-category="all"
+>
+Все
+</button>
 
-        <button
-          class="cat"
-          data-category="Техникум"
-        >
-          🏫 Техникум
-        </button>
+<button
+class="cat"
+data-category="Техникум"
+>
+🏫 Техникум
+</button>
 
-        <button
-          class="cat"
-          data-category="Студенты"
-        >
-          🧑‍🎓 Студенты
-        </button>
+<button
+class="cat"
+data-category="Студенты"
+>
+🧑‍🎓 Студенты
+</button>
 
-        <button
-          class="cat"
-          data-category="Прогулки"
-        >
-          🌳 Прогулки
-        </button>
+<button
+class="cat"
+data-category="Прогулки"
+>
+🌳 Прогулки
+</button>
 
-        <button
-          class="cat"
-          data-category="Спорт"
-        >
-          🏆 Спорт
-        </button>
+<button
+class="cat"
+data-category="Спорт"
+>
+🏆 Спорт
+</button>
 
-        <button
-          class="cat"
-          data-category="Творчество"
-        >
-          🎨 Творчество
-        </button>
+<button
+class="cat"
+data-category="Творчество"
+>
+🎨 Творчество
+</button>
 
-        <button
-          class="cat"
-          data-category="Смешные фото"
-        >
-          😂 Смешные фото
-        </button>
+<button
+class="cat"
+data-category="Смешные фото"
+>
+😂 Смешные фото
+</button>
 
-        <button
-          class="cat"
-          data-category="Другое"
-        >
-          📷 Другое
-        </button>
+<button
+class="cat"
+data-category="Другое"
+>
+📷 Другое
+</button>
 
-      </div>
+</div>
 
 
-      <div
-        class="grid"
-        id="photoGrid"
-        style="margin-top:18px"
-      >
+<div
+class="grid"
+id="photoGrid"
+style="margin-top:18px"
+>
 
-        <div class="empty">
+<div class="empty">
 
-          <div class="loader"></div>
+<div class="loader"></div>
 
-          <strong>
-            📷 Загружаем архив…
-          </strong>
+<strong>
+📷 Загружаем архив…
+</strong>
 
-          Подключаем фотографии из Firebase.
+Подключаем фотографии из Firebase.
 
-        </div>
+</div>
 
-      </div>
+</div>
 
-    </section>
+</section>
 
 
-    <!-- ABOUT -->
+<section id="about">
 
-    <section id="about">
+<div class="section-head">
 
-      <div class="section-head">
+<div>
 
-        <div>
+<h2>
+ℹ️ О проекте
+</h2>
 
-          <h2>
-            ℹ️ О проекте
-          </h2>
+<p>
+Как и зачем мы собираем этот архив
+</p>
 
-          <p>
-            Как и зачем мы собираем этот архив
-          </p>
+</div>
 
-        </div>
+</div>
 
-      </div>
 
+<div class="about-card">
 
-      <div class="about-card">
+<p>
 
-        <p>
+<b style="color:#fff">
+«Объектив техникума»
+</b>
 
-          <b style="color:#fff">
-            «Объектив техникума»
-          </b>
+— это фотоархив
+Советского техникума-интерната
+в городе Советске.
 
-          — это фотоархив
-          Советского техникума-интерната
-          в городе Советске.
+<br><br>
 
-          <br><br>
+Проект создан
+<b style="color:#fff">
+Левановичем Артуром
+</b>,
+студентом СТИ.
 
-          Проект создан
-          <b style="color:#fff">
-            Левановичем Артуром
-          </b>,
-          студентом СТИ.
+<br><br>
 
-          <br><br>
+Здесь собраны фотографии жизни
+техникума, студентов, интересных мест
+и просто запоминающихся моментов.
 
-          Здесь собраны фотографии жизни
-          техникума, студентов, интересных мест
-          и просто запоминающихся моментов.
+<br><br>
 
-          <br><br>
+Фотографии можно отправлять через
+<b style="color:#fff">
+СТИ ФотоБот
+</b>.
+После публикации снимки появляются
+в общем фотоархиве.
 
-          Фотографии можно отправлять через
-          <b style="color:#fff">
-            СТИ ФотоБот
-          </b>.
-          После публикации снимки появляются
-          в общем фотоархиве.
+<br><br>
 
-          <br><br>
+📸 Люди. Моменты. Воспоминания.
 
-          📸 Люди. Моменты. Воспоминания.
+</p>
 
-        </p>
 
+<div class="stats">
 
-        <div class="stats">
+<div class="stat">
+<b id="photoCount">—</b>
+<span>Всего снимков</span>
+</div>
 
-          <div class="stat">
-            <b id="photoCount">—</b>
-            <span>Всего снимков</span>
-          </div>
+<div class="stat">
+<b id="authorCount">—</b>
+<span>Авторов</span>
+</div>
 
-          <div class="stat">
-            <b id="authorCount">—</b>
-            <span>Авторов</span>
-          </div>
+<div class="stat">
+<b id="categoryCount">7</b>
+<span>Категорий</span>
+</div>
 
-          <div class="stat">
-            <b id="categoryCount">7</b>
-            <span>Категорий</span>
-          </div>
+</div>
 
-        </div>
+</div>
 
-      </div>
+</section>
 
-    </section>
-
-  </div>
+</div>
 
 </main>
 
 
 <footer>
 
-  <div class="container">
+<div class="container">
 
-    <span>
-      © <span id="year"></span>
-      «Объектив техникума»
-    </span>
+<span>
+© <span id="year"></span>
+«Объектив техникума»
+</span>
 
-    <span>
-      📸 Моменты, которые остаются с нами
-    </span>
+<span>
+📸 Моменты, которые остаются с нами
+</span>
 
-  </div>
+</div>
 
 </footer>
 
 
-<!-- PHOTO MODAL -->
-
 <div
-  class="modal"
-  id="modal"
+class="modal"
+id="modal"
 >
 
-  <div class="viewer">
+<div class="viewer">
 
-    <button
-      class="close"
-      id="closeModal"
-      aria-label="Закрыть"
-    >
-      ×
-    </button>
+<button
+class="close"
+id="closeModal"
+aria-label="Закрыть"
+>
+×
+</button>
 
-    <img
-      id="viewerImage"
-      src=""
-      alt=""
-    >
+<img
+id="viewerImage"
+src=""
+alt=""
+>
 
-    <div class="viewer-info">
+<div class="viewer-info">
 
-      <div>
+<div>
 
-        <b id="viewerTitle">
-          Фотография
-        </b>
+<b id="viewerTitle">
+Фотография
+</b>
 
-        <small id="viewerMeta"></small>
+<small id="viewerMeta"></small>
 
-      </div>
+</div>
 
-      <a
-        id="downloadBtn"
-        class="download"
-        href="#"
-        target="_blank"
-        rel="noopener"
-      >
-        ⬇ Скачать фотографию
-      </a>
+<a
+id="downloadBtn"
+class="download"
+href="#"
+target="_blank"
+rel="noopener"
+>
+⬇ Скачать фотографию
+</a>
 
-    </div>
+</div>
 
-  </div>
+</div>
 
 </div>
 
 
 <div
-  class="toast"
-  id="toast"
+class="toast"
+id="toast"
 ></div>
 
 
 <script>
 
-  /*
-   ============================================================
-   ОБЪЕКТИВ ТЕХНИКУМА
-   ============================================================
+/*
+============================================================
+ОБЪЕКТИВ ТЕХНИКУМА
+============================================================
 
-   Источник данных:
-   Firebase Realtime Database
+Архитектура:
 
-   База:
-   https://stisait-23039-default-rtdb.firebaseio.com/
+Telegram
+   ↓
+СТИ ФотоБот
+   ↓
+Render
+   ↓
+Firebase Realtime Database
+   ↓
+Сайт
+   ↓
+Render /photo/FIREBASE_ID
+   ↓
+Telegram
+   ↓
+Фотография
 
-   Структура:
+ВАЖНО:
 
-   photos
-      └── firebaseId
-            ├── title
-            ├── category
-            ├── authorName
-            ├── telegramFileId
-            ├── telegramUserId
-            ├── telegramUsername
-            ├── status
-            └── createdAt
+Сайт НЕ использует telegramFileId
+напрямую в URL.
 
-   Фотография берётся через Render:
+Он использует ID записи Firebase.
 
-   https://sti-sait.onrender.com/photo/TELEGRAM_FILE_ID
+============================================================
+*/
 
-   Токен Telegram-бота здесь НЕ хранится.
-  */
 
+const FIREBASE_DATABASE_URL =
+"https://stisait-23039-default-rtdb.firebaseio.com";
 
-  const FIREBASE_DATABASE_URL =
-    "https://stisait-23039-default-rtdb.firebaseio.com";
 
+/*
+ * ВАЖНО:
+ * Это адрес Render-сервиса, где запущен bot.js.
+ *
+ * Если bot.js находится именно на:
+ * https://sti-sait.onrender.com
+ *
+ * оставляем так.
+ */
 
-  const IMAGE_PROXY_URL =
-    "https://sti-sait.onrender.com/photo/";
+const IMAGE_PROXY_URL =
+"https://sti-sait.onrender.com/photo/";
 
 
-  let photos = [];
+let photos = [];
 
-  let activeCategory = "all";
+let activeCategory = "all";
 
-  let searchText = "";
+let searchText = "";
 
 
-  const grid =
-    document.getElementById("photoGrid");
+const grid =
+document.getElementById("photoGrid");
 
-  const resultText =
-    document.getElementById("resultText");
+const resultText =
+document.getElementById("resultText");
 
-  const searchInput =
-    document.getElementById("searchInput");
+const searchInput =
+document.getElementById("searchInput");
 
-  const modal =
-    document.getElementById("modal");
+const modal =
+document.getElementById("modal");
 
-  const viewerImage =
-    document.getElementById("viewerImage");
+const viewerImage =
+document.getElementById("viewerImage");
 
-  const viewerTitle =
-    document.getElementById("viewerTitle");
+const viewerTitle =
+document.getElementById("viewerTitle");
 
-  const viewerMeta =
-    document.getElementById("viewerMeta");
+const viewerMeta =
+document.getElementById("viewerMeta");
 
-  const downloadBtn =
-    document.getElementById("downloadBtn");
+const downloadBtn =
+document.getElementById("downloadBtn");
 
-  const toast =
-    document.getElementById("toast");
+const toast =
+document.getElementById("toast");
 
 
-  document.getElementById("year").textContent =
-    new Date().getFullYear();
+document.getElementById("year").textContent =
+new Date().getFullYear();
 
 
-  /*
-   * Безопасное экранирование текста.
-   */
+/* ============================================================
+   ESCAPE HTML
+============================================================ */
 
-  function escapeHtml(value) {
+function escapeHtml(value){
 
-    return String(value ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
+return String(value ?? "")
+.replaceAll("&","&amp;")
+.replaceAll("<","&lt;")
+.replaceAll(">","&gt;")
+.replaceAll('"',"&quot;")
+.replaceAll("'","&#039;");
 
-  }
+}
 
 
-  /*
-   * Форматирование даты.
-   */
+/* ============================================================
+   DATE
+============================================================ */
 
-  function formatDate(value) {
+function formatDate(value){
 
-    if (!value) {
-      return "";
-    }
+if(!value){
+return "";
+}
 
-    try {
+try{
 
-      const date = new Date(
-        Number(value)
-      );
+const date =
+new Date(Number(value));
 
-      if (Number.isNaN(date.getTime())) {
-        return "";
-      }
+if(Number.isNaN(date.getTime())){
+return "";
+}
 
-      return new Intl.DateTimeFormat(
-        "ru-RU",
-        {
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit"
-        }
-      ).format(date);
+return new Intl.DateTimeFormat(
+"ru-RU",
+{
+day:"2-digit",
+month:"long",
+year:"numeric",
+hour:"2-digit",
+minute:"2-digit"
+}
+).format(date);
 
-    } catch {
+}catch{
 
-      return "";
+return "";
 
-    }
+}
 
-  }
+}
 
 
-  /*
-   * Toast.
-   */
+/* ============================================================
+   TOAST
+============================================================ */
 
-  function showToast(text) {
+function showToast(text){
 
-    toast.textContent = text;
+toast.textContent = text;
 
-    toast.classList.add("show");
+toast.classList.add("show");
 
-    clearTimeout(
-      window.__toastTimer
-    );
+clearTimeout(window.__toastTimer);
 
-    window.__toastTimer =
-      setTimeout(() => {
+window.__toastTimer =
+setTimeout(()=>{
 
-        toast.classList.remove("show");
+toast.classList.remove("show");
 
-      }, 3000);
+},3000);
 
-  }
+}
 
 
-  /*
-   * URL фотографии.
-   */
+/* ============================================================
+   URL ФОТОГРАФИИ
+============================================================ */
 
-  function getImageUrl(photo) {
+/*
+ * ГЛАВНОЕ ИСПРАВЛЕНИЕ.
+ *
+ * Используем photo.id
+ *
+ * photo.id = Firebase ID записи.
+ *
+ * Render получает этот ID,
+ * находит telegramFileId в Firebase,
+ * затем получает файл из Telegram.
+ */
 
-    if (!photo) {
-      return "";
-    }
+function getImageUrl(photo){
 
-    /*
-     * Основной вариант:
-     * Telegram file_id → Render → Telegram.
-     */
+if(!photo){
+return "";
+}
 
-    if (photo.telegramFileId) {
 
-      return IMAGE_PROXY_URL +
-        encodeURIComponent(
-          photo.telegramFileId
-        );
+/*
+ * Основной вариант.
+ */
 
-    }
+if(photo.id){
 
+return IMAGE_PROXY_URL +
+encodeURIComponent(photo.id);
 
-    /*
-     * На случай, если позже
-     * добавится imageUrl.
-     */
+}
 
-    if (photo.imageUrl) {
-      return photo.imageUrl;
-    }
 
+/*
+ * Запасной вариант,
+ * если когда-нибудь появится imageUrl.
+ */
 
-    return "";
+if(photo.imageUrl){
 
-  }
+return photo.imageUrl;
 
+}
 
-  /*
-   * Фильтрация.
-   */
 
-  function filteredPhotos() {
+return "";
 
-    const query =
-      searchText.toLowerCase();
+}
 
-    return photos.filter(photo => {
 
-      const categoryOk =
-        activeCategory === "all" ||
-        photo.category === activeCategory;
+/* ============================================================
+   ФИЛЬТРАЦИЯ
+============================================================ */
 
+function filteredPhotos(){
 
-      const haystack = (
+const query =
+searchText.toLowerCase();
 
-        (photo.title || "") +
-        " " +
-        (photo.authorName || "") +
-        " " +
-        (photo.category || "")
+return photos.filter(photo=>{
 
-      ).toLowerCase();
+const categoryOk =
+activeCategory === "all" ||
+photo.category === activeCategory;
 
 
-      const searchOk =
-        !query ||
-        haystack.includes(query);
+const haystack =
 
+(photo.title || "") +
+" " +
+(photo.authorName || "") +
+" " +
+(photo.category || "");
 
-      return categoryOk && searchOk;
 
-    });
+const searchOk =
+!query ||
+haystack.toLowerCase().includes(query);
 
-  }
 
+return categoryOk && searchOk;
 
-  /*
-   * Отрисовка галереи.
-   */
+});
 
-  function renderPhotos() {
+}
 
-    const list =
-      filteredPhotos();
 
+/* ============================================================
+   ОШИБКА ЗАГРУЗКИ КАРТИНКИ
+============================================================ */
 
-    if (!list.length) {
+function imageError(image){
 
-      resultText.textContent =
-        photos.length
-          ? "Ничего не найдено"
-          : "В архиве пока нет фотографий";
+console.error(
+"Не удалось загрузить изображение:",
+image.src
+);
 
 
-      grid.innerHTML = `
+image.style.display = "none";
 
-        <div class="empty">
 
-          <strong>
-            📷 Здесь пока пусто
-          </strong>
+const wrapper =
+image.parentElement;
 
-          ${
-            photos.length
-              ? "Попробуй изменить поиск или выбрать другую категорию."
-              : "Отправь фотографию через СТИ ФотоБот, чтобы она появилась здесь."
-          }
 
-        </div>
+if(
+wrapper &&
+!wrapper.querySelector(".image-error")
+){
 
-      `;
+const error =
+document.createElement("div");
 
-      return;
+error.className =
+"image-error";
 
-    }
+error.innerHTML = `
 
+<div>📷</div>
 
-    resultText.textContent =
-      `${list.length} ${
-        getPhotoWord(list.length)
-      }`;
+<strong>
+Не удалось загрузить фотографию
+</strong>
 
+<span>
+Сервер изображения временно недоступен
+</span>
 
-    grid.innerHTML =
-      list.map((photo, index) => {
+`;
 
-        const imageUrl =
-          getImageUrl(photo);
+wrapper.insertBefore(
+error,
+wrapper.firstChild
+);
 
+}
 
-        return `
+}
 
-          <article
-            class="photo"
-            style="
-              animation-delay:
-              ${Math.min(index * 35, 500)}ms
-            "
-            data-id="${escapeHtml(photo.id)}"
-          >
 
-            <img
-              src="${escapeHtml(imageUrl)}"
-              alt="${escapeHtml(
-                photo.title ||
-                "Фотография"
-              )}"
-              loading="lazy"
-              onerror="imageError(this)"
-            >
+/* ============================================================
+   ОТРИСОВКА
+============================================================ */
 
-            <div class="photo-info">
+function renderPhotos(){
 
-              <div class="photo-title">
-                ${escapeHtml(
-                  photo.title ||
-                  "Без названия"
-                )}
-              </div>
+const list =
+filteredPhotos();
 
-              <div class="photo-author">
-                📷 ${
-                  escapeHtml(
-                    photo.authorName ||
-                    "Автор не указан"
-                  )
-                }
-              </div>
 
-              <div class="photo-category">
-                ${
-                  escapeHtml(
-                    photo.category ||
-                    "Другое"
-                  )
-                }
-              </div>
+if(!list.length){
 
-            </div>
+resultText.textContent =
+photos.length
+? "Ничего не найдено"
+: "В архиве пока нет фотографий";
 
-          </article>
 
-        `;
+grid.innerHTML = `
 
-      }).join("");
+<div class="empty">
 
+<strong>
+📷 Здесь пока пусто
+</strong>
 
-    grid
-      .querySelectorAll(".photo")
-      .forEach(card => {
+${
+photos.length
+? "Попробуй изменить поиск или выбрать другую категорию."
+: "Отправь фотографию через СТИ ФотоБот, чтобы она появилась здесь."
+}
 
-        card.addEventListener(
-          "click",
-          () => {
+</div>
 
-            const photo =
-              photos.find(
-                item =>
-                  item.id ===
-                  card.dataset.id
-              );
+`;
 
-            if (photo) {
-              openViewer(photo);
-            }
+return;
 
-          }
-        );
+}
 
-      });
 
-  }
+resultText.textContent =
+`${list.length} ${getPhotoWord(list.length)}`;
 
 
-  /*
-   * Слово "фотография".
-   */
+grid.innerHTML =
+list.map((photo,index)=>{
 
-  function getPhotoWord(number) {
+const imageUrl =
+getImageUrl(photo);
 
-    if (
-      number % 10 === 1 &&
-      number % 100 !== 11
-    ) {
-      return "фотография";
-    }
 
-    if (
-      [2,3,4].includes(
-        number % 10
-      ) &&
-      ![12,13,14].includes(
-        number % 100
-      )
-    ) {
-      return "фотографии";
-    }
+return `
 
-    return "фотографий";
+<article
+class="photo"
+style="
+animation-delay:${Math.min(index * 35,500)}ms
+"
+data-id="${escapeHtml(photo.id)}"
+>
 
-  }
+<img
+src="${escapeHtml(imageUrl)}"
+alt="${escapeHtml(
+photo.title || "Фотография"
+)}"
+loading="lazy"
+onerror="imageError(this)"
+>
 
+<div class="photo-info">
 
-  /*
-   * Если изображение не загрузилось.
-   */
+<div class="photo-title">
+${escapeHtml(
+photo.title || "Без названия"
+)}
+</div>
 
-  function imageError(image) {
+<div class="photo-author">
+📷 ${escapeHtml(
+photo.authorName || "Автор не указан"
+)}
+</div>
 
-    image.style.opacity = ".25";
+<div class="photo-category">
+${escapeHtml(
+photo.category || "Другое"
+)}
+</div>
 
-    image.alt =
-      "Не удалось загрузить фотографию";
+</div>
 
-  }
+</article>
 
+`;
 
-  /*
-   * Открытие просмотра.
-   */
+}).join("");
 
-  function openViewer(photo) {
 
-    const imageUrl =
-      getImageUrl(photo);
+grid
+.querySelectorAll(".photo")
+.forEach(card=>{
 
+card.addEventListener(
+"click",
+()=>{
 
-    viewerImage.src =
-      imageUrl;
+const photo =
+photos.find(
+item =>
+item.id === card.dataset.id
+);
 
-    viewerImage.alt =
-      photo.title ||
-      "Фотография";
+if(photo){
 
+openViewer(photo);
 
-    viewerTitle.textContent =
-      photo.title ||
-      "Без названия";
+}
 
+}
+);
 
-    const meta = [];
+});
 
+}
 
-    if (photo.authorName) {
 
-      meta.push(
-        `📷 ${photo.authorName}`
-      );
+/* ============================================================
+   СКЛОНЕНИЕ
+============================================================ */
 
-    }
+function getPhotoWord(number){
 
+if(
+number % 10 === 1 &&
+number % 100 !== 11
+){
 
-    if (photo.category) {
+return "фотография";
 
-      meta.push(
-        `• ${photo.category}`
-      );
+}
 
-    }
+if(
+[2,3,4].includes(number % 10) &&
+![12,13,14].includes(number % 100)
+){
 
+return "фотографии";
 
-    if (photo.createdAt) {
+}
 
-      const date =
-        formatDate(
-          photo.createdAt
-        );
+return "фотографий";
 
-      if (date) {
-        meta.push(`• ${date}`);
-      }
+}
 
-    }
 
+/* ============================================================
+   VIEWER
+============================================================ */
 
-    viewerMeta.textContent =
-      meta.join(" ");
+function openViewer(photo){
 
+const imageUrl =
+getImageUrl(photo);
 
-    downloadBtn.href =
-      imageUrl;
 
+viewerImage.src =
+imageUrl;
 
-    downloadBtn.setAttribute(
-      "download",
-      "sti-photo.jpg"
-    );
+viewerImage.alt =
+photo.title || "Фотография";
 
 
-    modal.classList.add("show");
+viewerTitle.textContent =
+photo.title || "Без названия";
 
-    document.body.style.overflow =
-      "hidden";
 
-  }
+const meta = [];
 
 
-  /*
-   * Закрытие просмотра.
-   */
+if(photo.authorName){
 
-  function closeViewer() {
+meta.push(
+`📷 ${photo.authorName}`
+);
 
-    modal.classList.remove(
-      "show"
-    );
+}
 
-    document.body.style.overflow =
-      "";
 
-    viewerImage.src = "";
+if(photo.category){
 
-  }
+meta.push(
+`• ${photo.category}`
+);
 
+}
 
-  /*
-   * Получение фотографий
-   * из Firebase Realtime Database.
-   */
 
-  async function loadPhotos() {
+if(photo.createdAt){
 
-    resultText.textContent =
-      "Подключаем архив…";
+const date =
+formatDate(photo.createdAt);
 
+if(date){
 
-    grid.innerHTML = `
+meta.push(`• ${date}`);
 
-      <div class="empty">
+}
 
-        <div class="loader"></div>
+}
 
-        <strong>
-          📷 Загружаем архив…
-        </strong>
 
-        Получаем фотографии из Firebase.
+viewerMeta.textContent =
+meta.join(" ");
 
-      </div>
 
-    `;
+downloadBtn.href =
+imageUrl;
 
 
-    try {
+downloadBtn.setAttribute(
+"download",
+"sti-photo.jpg"
+);
 
-      const response =
-        await fetch(
-          FIREBASE_DATABASE_URL +
-          "/photos.json"
-        );
 
+modal.classList.add("show");
 
-      if (!response.ok) {
+document.body.style.overflow =
+"hidden";
 
-        throw new Error(
-          "Firebase HTTP " +
-          response.status
-        );
+}
 
-      }
 
+/* ============================================================
+   CLOSE VIEWER
+============================================================ */
 
-      const data =
-        await response.json();
+function closeViewer(){
 
+modal.classList.remove("show");
 
-      if (!data) {
+document.body.style.overflow = "";
 
-        photos = [];
+viewerImage.src = "";
 
-      } else {
+}
 
-        photos =
-          Object.entries(data)
-            .map(
-              ([id, value]) => ({
-                id,
-                ...(value || {})
-              })
-            )
-            .filter(
-              photo =>
-                photo.status ===
-                "published"
-            )
-            .sort(
-              (a,b) =>
-                Number(
-                  b.createdAt || 0
-                ) -
-                Number(
-                  a.createdAt || 0
-                )
-            );
 
-      }
+/* ============================================================
+   ЗАГРУЗКА FIREBASE
+============================================================ */
 
+async function loadPhotos(){
 
-      updateStats();
+resultText.textContent =
+"Подключаем архив…";
 
-      renderPhotos();
 
+grid.innerHTML = `
 
-    } catch (error) {
+<div class="empty">
 
-      console.error(
-        "Ошибка Firebase:",
-        error
-      );
+<div class="loader"></div>
 
+<strong>
+📷 Загружаем архив…
+</strong>
 
-      photos = [];
+Получаем фотографии из Firebase.
 
+</div>
 
-      resultText.textContent =
-        "Ошибка подключения";
+`;
 
 
-      grid.innerHTML = `
+try{
 
-        <div class="empty">
+const url =
+FIREBASE_DATABASE_URL +
+"/photos.json";
 
-          <strong>
-            ⚠️ Не удалось загрузить архив
-          </strong>
 
-          <div style="margin-top:10px">
+console.log(
+"Firebase URL:",
+url
+);
 
-            Проверь подключение к
-            Firebase Realtime Database.
 
-          </div>
+const response =
+await fetch(url,{
+method:"GET",
+cache:"no-store"
+});
 
-          <div
-            style="
-              margin-top:10px;
-              font-size:12px;
-              opacity:.65;
-            "
-          >
-            ${escapeHtml(
-              error.message ||
-              "Неизвестная ошибка"
-            )}
-          </div>
 
-          <button
-            class="primary"
-            style="margin-top:18px"
-            onclick="loadPhotos()"
-          >
-            🔄 Повторить
-          </button>
+if(!response.ok){
 
-        </div>
+throw new Error(
+"Firebase HTTP " +
+response.status
+);
 
-      `;
+}
 
-    }
 
-  }
+const data =
+await response.json();
 
 
-  /*
-   * Статистика.
-   */
+console.log(
+"Firebase данные:",
+data
+);
 
-  function updateStats() {
 
-    document.getElementById(
-      "photoCount"
-    ).textContent =
-      photos.length;
+if(!data){
 
+photos = [];
 
-    const authors =
-      new Set(
-        photos
-          .map(
-            photo =>
-              photo.authorName
-          )
-          .filter(Boolean)
-      );
+}else{
 
+photos =
+Object.entries(data)
+.map(([id,value])=>({
 
-    document.getElementById(
-      "authorCount"
-    ).textContent =
-      authors.size;
+id:id,
 
-  }
+...(value || {})
 
+}))
+.filter(photo=>{
 
-  /*
-   * Поиск.
-   */
+return photo.status ===
+"published";
 
-  searchInput.addEventListener(
-    "input",
-    event => {
+})
+.sort((a,b)=>{
 
-      searchText =
-        event.target.value.trim();
+return Number(
+b.createdAt || 0
+) -
+Number(
+a.createdAt || 0
+);
 
-      renderPhotos();
+});
 
-    }
-  );
+}
 
 
-  /*
-   * Категории.
-   */
+console.log(
+"Загружено фотографий:",
+photos.length
+);
 
-  document
-    .querySelectorAll(".cat")
-    .forEach(button => {
 
-      button.addEventListener(
-        "click",
-        () => {
+photos.forEach(photo=>{
 
-          document
-            .querySelectorAll(".cat")
-            .forEach(
-              item =>
-                item.classList.remove(
-                  "active"
-                )
-            );
+console.log(
+"Фотография:",
+photo.id,
+photo.title,
+photo.telegramFileId,
+getImageUrl(photo)
+);
 
+});
 
-          button.classList.add(
-            "active"
-          );
 
+updateStats();
 
-          activeCategory =
-            button.dataset.category;
+renderPhotos();
 
 
-          renderPhotos();
+}catch(error){
 
-        }
-      );
+console.error(
+"Ошибка Firebase:",
+error
+);
 
-    });
 
+photos = [];
 
-  /*
-   * Плавная навигация.
-   */
 
-  document
-    .querySelectorAll("[data-scroll]")
-    .forEach(button => {
+resultText.textContent =
+"Ошибка подключения";
 
-      button.addEventListener(
-        "click",
-        () => {
 
-          const target =
-            document.querySelector(
-              button.dataset.scroll
-            );
+grid.innerHTML = `
 
+<div class="empty">
 
-          if (target) {
+<strong>
+⚠️ Не удалось загрузить архив
+</strong>
 
-            target.scrollIntoView({
-              behavior: "smooth",
-              block: "start"
-            });
+<div style="margin-top:10px">
 
-          }
+Проверь подключение к
+Firebase Realtime Database.
 
-        }
-      );
+</div>
 
-    });
+<div
+style="
+margin-top:10px;
+font-size:12px;
+opacity:.65;
+"
+>
+${escapeHtml(
+error.message ||
+"Неизвестная ошибка"
+)}
+</div>
 
+<button
+class="primary"
+style="margin-top:18px"
+onclick="loadPhotos()"
+>
+🔄 Повторить
+</button>
 
-  /*
-   * Активная кнопка меню.
-   */
+</div>
 
-  document
-    .querySelectorAll("nav button")
-    .forEach(button => {
+`;
 
-      button.addEventListener(
-        "click",
-        () => {
+}
 
-          document
-            .querySelectorAll(
-              "nav button"
-            )
-            .forEach(
-              item =>
-                item.classList.remove(
-                  "active"
-                )
-            );
+}
 
 
-          button.classList.add(
-            "active"
-          );
+/* ============================================================
+   СТАТИСТИКА
+============================================================ */
 
-        }
-      );
+function updateStats(){
 
-    });
+document.getElementById(
+"photoCount"
+).textContent =
+photos.length;
 
 
-  /*
-   * Закрытие модального окна.
-   */
+const authors =
+new Set(
+photos
+.map(photo=>photo.authorName)
+.filter(Boolean)
+);
 
-  document
-    .getElementById("closeModal")
-    .addEventListener(
-      "click",
-      closeViewer
-    );
 
+document.getElementById(
+"authorCount"
+).textContent =
+authors.size;
 
-  modal.addEventListener(
-    "click",
-    event => {
+}
 
-      if (
-        event.target === modal
-      ) {
-        closeViewer();
-      }
 
-    }
-  );
+/* ============================================================
+   ПОИСК
+============================================================ */
 
+searchInput.addEventListener(
+"input",
+event=>{
 
-  document.addEventListener(
-    "keydown",
-    event => {
+searchText =
+event.target.value.trim();
 
-      if (
-        event.key === "Escape"
-      ) {
-        closeViewer();
-      }
+renderPhotos();
 
-    }
-  );
+}
+);
 
 
-  /*
-   * Загружаем архив.
-   */
+/* ============================================================
+   КАТЕГОРИИ
+============================================================ */
 
-  loadPhotos();
+document
+.querySelectorAll(".cat")
+.forEach(button=>{
 
+button.addEventListener(
+"click",
+()=>{
 
-  /*
-   * Периодически проверяем новые
-   * фотографии.
+document
+.querySelectorAll(".cat")
+.forEach(item=>{
 
-   * Каждые 30 секунд сайт проверяет
-   * Firebase и автоматически обновляет
-   * галерею.
-   */
+item.classList.remove(
+"active"
+);
 
-  setInterval(
-    loadPhotos,
-    30000
-  );
+});
+
+
+button.classList.add(
+"active"
+);
+
+
+activeCategory =
+button.dataset.category;
+
+
+renderPhotos();
+
+}
+);
+
+});
+
+
+/* ============================================================
+   НАВИГАЦИЯ
+============================================================ */
+
+document
+.querySelectorAll("[data-scroll]")
+.forEach(button=>{
+
+button.addEventListener(
+"click",
+()=>{
+
+const target =
+document.querySelector(
+button.dataset.scroll
+);
+
+
+if(target){
+
+target.scrollIntoView({
+behavior:"smooth",
+block:"start"
+});
+
+}
+
+}
+);
+
+});
+
+
+/* ============================================================
+   ACTIVE NAV
+============================================================ */
+
+document
+.querySelectorAll("nav button")
+.forEach(button=>{
+
+button.addEventListener(
+"click",
+()=>{
+
+document
+.querySelectorAll(
+"nav button"
+)
+.forEach(item=>{
+
+item.classList.remove(
+"active"
+);
+
+});
+
+
+button.classList.add(
+"active"
+);
+
+}
+);
+
+});
+
+
+/* ============================================================
+   MODAL
+============================================================ */
+
+document
+.getElementById("closeModal")
+.addEventListener(
+"click",
+closeViewer
+);
+
+
+modal.addEventListener(
+"click",
+event=>{
+
+if(
+event.target === modal
+){
+
+closeViewer();
+
+}
+
+});
+
+
+document.addEventListener(
+"keydown",
+event=>{
+
+if(
+event.key === "Escape"
+){
+
+closeViewer();
+
+}
+
+}
+);
+
+
+/* ============================================================
+   START
+============================================================ */
+
+loadPhotos();
+
+
+/*
+ * Автоматическая проверка новых
+ * фотографий каждые 30 секунд.
+ */
+
+setInterval(
+loadPhotos,
+30000
+);
 
 </script>
 
