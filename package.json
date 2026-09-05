@@ -1,0 +1,13 @@
+{
+  "name": "sti-photo-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Telegram bot for the STИ photo archive",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "telegraf": "^4.16.3"
+  }
+}
