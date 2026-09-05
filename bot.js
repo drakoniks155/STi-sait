@@ -1,284 +1,729 @@
 const { Telegraf, Markup } = require("telegraf");
 const http = require("http");
 
-const token = process.env.BOT_TOKEN;
+// ======================================================
+// НАСТРОЙКИ
+// ======================================================
 
-if (!token) {
-  console.error("ERROR: BOT_TOKEN environment variable is not set.");
-  process.exit(1);
+const BOT_TOKEN = process.env.BOT_TOKEN;
+
+const FIREBASE_DATABASE_URL =
+  process.env.FIREBASE_DATABASE_URL ||
+  "https://stisait-23039-default-rtdb.firebaseio.com";
+
+if (!BOT_TOKEN) {
+  throw new Error("❌ Переменная BOT_TOKEN не задана в Render");
 }
 
-const bot = new Telegraf(token);
+const bot = new Telegraf(BOT_TOKEN);
 
-// Temporary conversation state.
-// This is intentionally in memory for the first test.
-// Firebase will replace this storage later.
+// Временные данные пользователей.
+// Важно: после перезапуска Render эти данные сбрасываются.
 const sessions = new Map();
 
+// ======================================================
+// КАТЕГОРИИ
+// ======================================================
+
 const categories = [
-  ["🏫 Техникум", "tech"],
-  ["🧑‍🎓 Студенты", "students"],
-  ["🌳 Прогулки", "walks"],
-  ["🏆 Спорт", "sport"],
-  ["🎨 Творчество", "creative"],
-  ["😂 Смешные фото", "funny"],
-  ["📷 Другое", "other"]
+  ["🏫 Техникум", "Техникум"],
+  ["🧑‍🎓 Студенты", "Студенты"],
+  ["🌳 Прогулки", "Прогулки"],
+  ["🏆 Спорт", "Спорт"],
+  ["🎨 Творчество", "Творчество"],
+  ["😂 Смешные фото", "Смешные фото"],
+  ["📷 Другое", "Другое"],
 ];
+
+// ======================================================
+// КЛАВИАТУРЫ
+// ======================================================
 
 function mainKeyboard() {
   return Markup.inlineKeyboard([
-    [Markup.button.callback("📸 Опубликовать фотографию", "publish")],
     [
-      Markup.button.callback("🖼️ Мои публикации", "myphotos"),
-      Markup.button.callback("ℹ️ Помощь", "help")
-    ]
+      Markup.button.callback(
+        "📸 Опубликовать фотографию",
+        "publish"
+      ),
+    ],
+    [
+      Markup.button.callback(
+        "🖼️ Мои публикации",
+        "myphotos"
+      ),
+      Markup.button.callback(
+        "❓ Помощь",
+        "help"
+      ),
+    ],
   ]);
 }
 
 function categoryKeyboard() {
   return Markup.inlineKeyboard(
-    categories.map(([label, value]) => [
-      Markup.button.callback(label, `cat:${value}`)
+    categories.map(([name, value]) => [
+      Markup.button.callback(
+        name,
+        `category:${value}`
+      ),
     ])
   );
 }
 
-function categoryName(value) {
-  const found = categories.find(([, v]) => v === value);
-  return found ? found[0] : value;
+function confirmationKeyboard() {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(
+        "✅ Опубликовать",
+        "confirm_publish"
+      ),
+    ],
+    [
+      Markup.button.callback(
+        "❌ Отмена",
+        "cancel_publish"
+      ),
+    ],
+  ]);
 }
 
-function resetSession(userId) {
-  sessions.delete(userId);
+// ======================================================
+// FIREBASE REALTIME DATABASE
+// ======================================================
+
+async function firebaseRequest(path, options = {}) {
+  const url =
+    `${FIREBASE_DATABASE_URL.replace(/\/$/, "")}` +
+    `/${path}.json`;
+
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
+
+  const text = await response.text();
+
+  if (!response.ok) {
+    throw new Error(
+      `Firebase error ${response.status}: ${text}`
+    );
+  }
+
+  if (!text) {
+    return null;
+  }
+
+  return JSON.parse(text);
 }
+
+// Добавление новой записи
+async function firebasePush(path, data) {
+  return await firebaseRequest(path, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// Получение данных
+async function firebaseGet(path) {
+  return await firebaseRequest(path, {
+    method: "GET",
+  });
+}
+
+// ======================================================
+// /START
+// ======================================================
 
 bot.start(async (ctx) => {
-  resetSession(ctx.from.id);
+  sessions.delete(ctx.from.id);
 
   await ctx.reply(
-    `📸 Добро пожаловать в СТИ ФотоБот!
+    "📸 Добро пожаловать в СТИ ФотоБот!\n\n" +
 
-Здесь ты можешь отправить фотографию и поделиться ею через фотоархив «Объектив техникума».
+    "Здесь ты можешь отправить фотографию " +
+    "и поделиться ею с другими студентами через " +
+    "фотоархив «Объектив техникума».\n\n" +
 
-Что можно сделать:
-📷 Опубликовать фотографию
-🖼️ Посмотреть свои публикации
-👤 Указать имя автора
-📚 Выбрать категорию
+    "Что можно сделать:\n" +
+    "📷 Опубликовать фотографию\n" +
+    "🖼️ Посмотреть свои публикации\n" +
+    "👤 Указать имя автора\n\n" +
 
-Каждый кадр — часть истории нашего техникума. ❤️`,
+    "Каждый кадр — часть истории нашего техникума. ❤️\n\n" +
+
+    "Выбирай действие ниже:",
+    
     mainKeyboard()
   );
 });
+
+// ======================================================
+// КОМАНДА /PUBLISH
+// ======================================================
 
 bot.command("publish", async (ctx) => {
-  startPublish(ctx);
-});
-
-async function startPublish(ctx) {
-  sessions.set(ctx.from.id, { step: "photo" });
+  sessions.set(ctx.from.id, {
+    step: "photo",
+  });
 
   await ctx.reply(
-    "📷 Отлично!\n\nОтправь мне фотографию, которую хочешь опубликовать.\n\nДля отмены напиши /cancel"
-  );
-}
-
-bot.command("cancel", async (ctx) => {
-  resetSession(ctx.from.id);
-  await ctx.reply("❌ Публикация отменена.", mainKeyboard());
-});
-
-bot.command("myphotos", async (ctx) => {
-  await ctx.reply(
-    "🖼️ Раздел «Мои публикации» пока работает в тестовом режиме.\n\nПосле подключения Firebase здесь появится список твоих опубликованных фотографий.",
-    mainKeyboard()
+    "📷 Отлично!\n\n" +
+    "Теперь отправь мне фотографию.\n\n" +
+    "После этого я попрошу:\n" +
+    "📝 название\n" +
+    "📂 категорию\n" +
+    "👤 имя автора"
   );
 });
 
-bot.command("help", async (ctx) => {
-  await ctx.reply(
-    `ℹ️ Помощь
-
-📸 /publish — опубликовать фотографию
-🖼️ /myphotos — мои публикации
-❌ /cancel — отменить текущую публикацию
-ℹ️ /help — помощь
-
-Сейчас бот работает в тестовом режиме. Firebase подключим следующим этапом.`,
-    mainKeyboard()
-  );
-});
+// ======================================================
+// КНОПКА «ОПУБЛИКОВАТЬ»
+// ======================================================
 
 bot.action("publish", async (ctx) => {
   await ctx.answerCbQuery();
-  await startPublish(ctx);
-});
 
-bot.action("myphotos", async (ctx) => {
-  await ctx.answerCbQuery();
+  sessions.set(ctx.from.id, {
+    step: "photo",
+  });
+
   await ctx.reply(
-    "🖼️ Пока здесь нет сохранённых публикаций.\n\nFirebase подключим следующим этапом.",
-    mainKeyboard()
+    "📷 Отлично!\n\n" +
+    "Теперь отправь мне фотографию.\n\n" +
+    "После этого я попрошу:\n" +
+    "📝 название\n" +
+    "📂 категорию\n" +
+    "👤 имя автора"
   );
 });
 
-bot.action("help", async (ctx) => {
-  await ctx.answerCbQuery();
-  await ctx.reply(
-    "ℹ️ Отправь /publish или нажми «📸 Опубликовать фотографию», затем следуй подсказкам.",
-    mainKeyboard()
-  );
-});
+// ======================================================
+// ПОЛУЧЕНИЕ ФОТОГРАФИИ
+// ======================================================
 
 bot.on("photo", async (ctx) => {
-  const session = sessions.get(ctx.from.id);
+  const userId = ctx.from.id;
+  const session = sessions.get(userId);
 
   if (!session || session.step !== "photo") {
     await ctx.reply(
-      "📸 Чтобы начать публикацию, нажми кнопку ниже.",
-      mainKeyboard()
+      "📸 Сначала нажми «Опубликовать фотографию»."
     );
     return;
   }
 
+  // Telegram отправляет несколько размеров фотографии.
+  // Берём самое большое изображение.
   const photos = ctx.message.photo;
-  const best = photos[photos.length - 1];
 
-  session.photoFileId = best.file_id;
+  const bestPhoto =
+    photos[photos.length - 1];
+
+  // Сохраняем Telegram file_id.
+  session.photoFileId = bestPhoto.file_id;
+
   session.step = "title";
-  sessions.set(ctx.from.id, session);
 
   await ctx.reply(
-    "✅ Фото получил!\n\nТеперь напиши название фотографии.\n\nНапример: «Прогулка возле техникума»"
+    "✅ Фотография получена!\n\n" +
+    "📝 Теперь напиши название фотографии."
   );
 });
 
+// ======================================================
+// ОБРАБОТКА ТЕКСТА
+// ======================================================
+
 bot.on("text", async (ctx) => {
-  const session = sessions.get(ctx.from.id);
+  const userId = ctx.from.id;
+  const text = ctx.message.text.trim();
+
+  const session = sessions.get(userId);
 
   if (!session) {
+    return;
+  }
+
+  // ----------------------------------------------
+  // ОТМЕНА
+  // ----------------------------------------------
+
+  if (text === "/cancel") {
+    sessions.delete(userId);
+
     await ctx.reply(
-      "Привет! 👋 Выбери действие:",
+      "❌ Публикация отменена.",
       mainKeyboard()
     );
+
     return;
   }
 
-  if (ctx.message.text.startsWith("/")) return;
+  // ----------------------------------------------
+  // НАЗВАНИЕ
+  // ----------------------------------------------
 
   if (session.step === "title") {
-    session.title = ctx.message.text.trim();
-
-    if (!session.title) {
-      await ctx.reply("⚠️ Название не может быть пустым. Напиши название ещё раз.");
-      return;
-    }
+    session.title = text;
 
     session.step = "category";
-    sessions.set(ctx.from.id, session);
 
     await ctx.reply(
-      "📚 Выбери категорию:",
+      "📂 Теперь выбери категорию:",
       categoryKeyboard()
     );
+
     return;
   }
 
+  // ----------------------------------------------
+  // ИМЯ АВТОРА
+  // ----------------------------------------------
+
   if (session.step === "author") {
-    session.authorName = ctx.message.text.trim();
+    session.authorName = text;
 
-    if (!session.authorName) {
-      await ctx.reply("⚠️ Имя автора не может быть пустым. Напиши его ещё раз.");
-      return;
-    }
-
-    session.step = "confirm";
-    sessions.set(ctx.from.id, session);
+    session.step = "confirmation";
 
     await ctx.reply(
-      `📸 Готово к публикации!
+      "📸 Готово к публикации!\n\n" +
 
-Название: ${session.title}
-Категория: ${categoryName(session.category)}
-Автор: ${session.authorName}
+      `📝 Название: ${session.title}\n` +
+      `📂 Категория: ${session.category}\n` +
+      `👤 Автор: ${session.authorName}\n\n` +
 
-В тестовом режиме после нажатия «Опубликовать» бот просто подтвердит публикацию. Firebase подключим следующим этапом.`,
-      Markup.inlineKeyboard([
-        [
-          Markup.button.callback("✅ Опубликовать", "confirm_publish"),
-          Markup.button.callback("❌ Отмена", "cancel_publish")
-        ]
-      ])
+      "Всё правильно?",
+      
+      confirmationKeyboard()
     );
+
+    return;
   }
 });
 
-bot.action(/^cat:(.+)$/, async (ctx) => {
+// ======================================================
+// ВЫБОР КАТЕГОРИИ
+// ======================================================
+
+bot.action(/^category:(.+)$/, async (ctx) => {
   await ctx.answerCbQuery();
 
-  const session = sessions.get(ctx.from.id);
+  const userId = ctx.from.id;
+
+  const session = sessions.get(userId);
 
   if (!session || session.step !== "category") {
-    await ctx.reply("Начни новую публикацию через /publish.", mainKeyboard());
+    await ctx.reply(
+      "⚠️ Публикация не найдена.\n\n" +
+      "Начни заново: /publish"
+    );
+
     return;
   }
 
   session.category = ctx.match[1];
+
   session.step = "author";
-  sessions.set(ctx.from.id, session);
 
   await ctx.reply(
-    "👤 Теперь напиши имя автора фотографии.\n\nНапример: Артур"
+    "👤 Теперь напиши имя автора фотографии."
   );
 });
 
+// ======================================================
+// ПОДТВЕРЖДЕНИЕ ПУБЛИКАЦИИ
+// ======================================================
+
 bot.action("confirm_publish", async (ctx) => {
-  await ctx.answerCbQuery("Публикация принята!");
+  await ctx.answerCbQuery();
 
-  const session = sessions.get(ctx.from.id);
+  const userId = ctx.from.id;
 
-  if (!session || session.step !== "confirm") {
-    await ctx.reply("Эта публикация уже обработана. Начни новую через /publish.");
+  const session = sessions.get(userId);
+
+  if (
+    !session ||
+    session.step !== "confirmation"
+  ) {
+    await ctx.reply(
+      "⚠️ Данные публикации потерялись.\n\n" +
+      "Начни заново: /publish"
+    );
+
+    sessions.delete(userId);
+
     return;
   }
 
-  await ctx.reply(
-    `🎉 Публикация принята!
+  // ====================================================
+  // ДАННЫЕ, КОТОРЫЕ СОХРАНИМ В FIREBASE
+  // ====================================================
 
-📸 ${session.title}
-📚 ${categoryName(session.category)}
-👤 ${session.authorName}
+  const publication = {
 
-Сейчас это тестовый режим: данные ещё не записываются в Firebase.
-Следующим этапом подключим Firebase Storage + Firestore.`,
-    mainKeyboard()
-  );
+    // Основные данные
+    title: session.title,
 
-  resetSession(ctx.from.id);
+    category: session.category,
+
+    authorName: session.authorName,
+
+    // Telegram
+    telegramFileId: session.photoFileId,
+
+    telegramUserId: userId,
+
+    telegramUsername:
+      ctx.from.username || null,
+
+    // Статус публикации
+    status: "published",
+
+    // Время
+    createdAt: Date.now(),
+  };
+
+  try {
+
+    // Сохраняем в:
+    // photos/{автоматический-ID}
+
+    const result =
+      await firebasePush(
+        "photos",
+        publication
+      );
+
+    sessions.delete(userId);
+
+    await ctx.editMessageText(
+      "✅ Фотография опубликована!\n\n" +
+
+      "📸 Она сохранена в Firebase " +
+      "Realtime Database.\n\n" +
+
+      `📝 ${publication.title}\n` +
+      `📂 ${publication.category}\n` +
+      `👤 ${publication.authorName}\n\n` +
+
+      "Теперь её можно будет вывести " +
+      "на сайте «Объектив техникума». ❤️"
+    );
+
+    console.log(
+      "Новая публикация:",
+      result
+    );
+
+  } catch (error) {
+
+    console.error(
+      "❌ Ошибка Firebase:",
+      error
+    );
+
+    await ctx.reply(
+      "❌ Не удалось сохранить фотографию.\n\n" +
+
+      "Проверь:\n" +
+      "1. FIREBASE_DATABASE_URL в Render\n" +
+      "2. Rules Realtime Database\n" +
+      "3. Что база Firebase существует"
+    );
+  }
 });
+
+// ======================================================
+// ОТМЕНА ПУБЛИКАЦИИ
+// ======================================================
 
 bot.action("cancel_publish", async (ctx) => {
   await ctx.answerCbQuery();
-  resetSession(ctx.from.id);
-  await ctx.reply("❌ Публикация отменена.", mainKeyboard());
+
+  sessions.delete(ctx.from.id);
+
+  try {
+    await ctx.editMessageText(
+      "❌ Публикация отменена."
+    );
+  } catch (error) {
+    console.error(error);
+  }
+
+  await ctx.reply(
+    "Что хочешь сделать?",
+    mainKeyboard()
+  );
 });
 
-// Small HTTP server so Render can run this as a Web Service.
-const port = Number(process.env.PORT || 10000);
+// ======================================================
+// МОИ ПУБЛИКАЦИИ
+// ======================================================
 
-http.createServer((req, res) => {
-  res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
-  res.end("СТИ ФотоБот работает ✅");
-}).listen(port, "0.0.0.0", () => {
-  console.log(`HTTP server listening on port ${port}`);
+bot.command("myphotos", async (ctx) => {
+  try {
+
+    const data =
+      await firebaseGet(
+        "photos"
+      );
+
+    if (!data) {
+      await ctx.reply(
+        "🖼️ У тебя пока нет публикаций."
+      );
+
+      return;
+    }
+
+    const publications =
+      Object.entries(data)
+        .map(([id, item]) => ({
+          id,
+          ...item,
+        }))
+        .filter(
+          (item) =>
+            String(item.telegramUserId) ===
+            String(ctx.from.id)
+        )
+        .sort(
+          (a, b) =>
+            (b.createdAt || 0) -
+            (a.createdAt || 0)
+        );
+
+    if (publications.length === 0) {
+      await ctx.reply(
+        "🖼️ У тебя пока нет публикаций."
+      );
+
+      return;
+    }
+
+    let message =
+      `🖼️ Твои публикации: ${publications.length}\n\n`;
+
+    publications
+      .slice(0, 20)
+      .forEach((item, index) => {
+
+        message +=
+          `${index + 1}. 📸 ${item.title}\n` +
+          `   📂 ${item.category}\n` +
+          `   👤 ${item.authorName}\n\n`;
+      });
+
+    await ctx.reply(message);
+
+  } catch (error) {
+
+    console.error(
+      "❌ Ошибка получения публикаций:",
+      error
+    );
+
+    await ctx.reply(
+      "❌ Не удалось получить публикации."
+    );
+  }
 });
+
+// ======================================================
+// КНОПКА «МОИ ПУБЛИКАЦИИ»
+// ======================================================
+
+bot.action("myphotos", async (ctx) => {
+  await ctx.answerCbQuery();
+
+  try {
+
+    const data =
+      await firebaseGet(
+        "photos"
+      );
+
+    if (!data) {
+      await ctx.reply(
+        "🖼️ У тебя пока нет публикаций."
+      );
+
+      return;
+    }
+
+    const publications =
+      Object.values(data)
+        .filter(
+          (item) =>
+            String(item.telegramUserId) ===
+            String(ctx.from.id)
+        )
+        .sort(
+          (a, b) =>
+            (b.createdAt || 0) -
+            (a.createdAt || 0)
+        );
+
+    if (publications.length === 0) {
+      await ctx.reply(
+        "🖼️ У тебя пока нет публикаций."
+      );
+
+      return;
+    }
+
+    let message =
+      `🖼️ Твои публикации: ${publications.length}\n\n`;
+
+    publications
+      .slice(0, 20)
+      .forEach((item, index) => {
+
+        message +=
+          `${index + 1}. 📸 ${item.title}\n` +
+          `   📂 ${item.category}\n` +
+          `   👤 ${item.authorName}\n\n`;
+      });
+
+    await ctx.reply(message);
+
+  } catch (error) {
+
+    console.error(error);
+
+    await ctx.reply(
+      "❌ Не удалось получить публикации."
+    );
+  }
+});
+
+// ======================================================
+// HELP
+// ======================================================
+
+bot.command("help", async (ctx) => {
+  await ctx.reply(
+    "❓ Помощь\n\n" +
+
+    "/start — главное меню\n" +
+    "/publish — опубликовать фотографию\n" +
+    "/myphotos — мои публикации\n" +
+    "/cancel — отменить публикацию\n" +
+    "/help — помощь\n\n" +
+
+    "📸 Фотографии сохраняются через " +
+    "Firebase Realtime Database."
+  );
+});
+
+// ======================================================
+// КНОПКА HELP
+// ======================================================
+
+bot.action("help", async (ctx) => {
+  await ctx.answerCbQuery();
+
+  await ctx.reply(
+    "❓ Помощь\n\n" +
+
+    "📸 Опубликовать фотографию — " +
+    "загрузить новый кадр\n\n" +
+
+    "🖼️ Мои публикации — " +
+    "посмотреть свои фотографии\n\n" +
+
+    "/cancel — отменить текущую публикацию"
+  );
+});
+
+// ======================================================
+// ОБРАБОТКА ОШИБОК TELEGRAM
+// ======================================================
+
+bot.catch((error) => {
+  console.error(
+    "❌ Ошибка Telegram-бота:",
+    error
+  );
+});
+
+// ======================================================
+// HTTP-СЕРВЕР ДЛЯ RENDER
+// ======================================================
+
+const PORT =
+  Number(process.env.PORT) || 10000;
+
+const server = http.createServer(
+  (req, res) => {
+
+    res.writeHead(
+      200,
+      {
+        "Content-Type":
+          "text/plain; charset=utf-8",
+      }
+    );
+
+    res.end(
+      "СТИ ФотоБот работает! 📸"
+    );
+  }
+);
+
+server.listen(
+  PORT,
+  "0.0.0.0",
+  () => {
+
+    console.log(
+      `🌐 HTTP сервер запущен на порту ${PORT}`
+    );
+  }
+);
+
+// ======================================================
+// ЗАПУСК БОТА
+// ======================================================
 
 bot.launch()
-  .then(() => console.log("Telegram bot started successfully."))
-  .catch((err) => {
-    console.error("Failed to start Telegram bot:", err);
+  .then(() => {
+
+    console.log(
+      "📸 СТИ ФотоБот запущен!"
+    );
+
+    console.log(
+      "🔥 Firebase:",
+      FIREBASE_DATABASE_URL
+    );
+
+  })
+  .catch((error) => {
+
+    console.error(
+      "❌ Не удалось запустить бота:",
+      error
+    );
+
     process.exit(1);
   });
 
-process.once("SIGINT", () => bot.stop("SIGINT"));
-process.once("SIGTERM", () => bot.stop("SIGTERM"));
+// ======================================================
+// КОРРЕКТНОЕ ЗАВЕРШЕНИЕ
+// ======================================================
+
+process.once(
+  "SIGINT",
+  () => bot.stop("SIGINT")
+);
+
+process.once(
+  "SIGTERM",
+  () => bot.stop("SIGTERM")
+);
