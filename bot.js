@@ -11,6 +11,11 @@ const FIREBASE_DATABASE_URL =
   process.env.FIREBASE_DATABASE_URL ||
   "https://stisait-23039-default-rtdb.firebaseio.com";
 
+// ID администратора Telegram.
+// Добавь переменную ADMIN_TELEGRAM_ID на Render.
+const ADMIN_TELEGRAM_ID =
+  process.env.ADMIN_TELEGRAM_ID || "";
+
 if (!BOT_TOKEN) {
   throw new Error("BOT_TOKEN не задан");
 }
@@ -91,11 +96,11 @@ function confirmationKeyboard() {
 // ======================================================
 
 async function firebaseRequest(path, options = {}) {
-
   const baseUrl =
     FIREBASE_DATABASE_URL.replace(/\/$/, "");
 
-  const url = `${baseUrl}/${path}.json`;
+  const url =
+    `${baseUrl}/${path}.json`;
 
   console.log("================================");
   console.log("FIREBASE REQUEST");
@@ -104,7 +109,6 @@ async function firebaseRequest(path, options = {}) {
   console.log("================================");
 
   try {
-
     const response = await fetch(url, {
       ...options,
 
@@ -116,11 +120,17 @@ async function firebaseRequest(path, options = {}) {
 
     const text = await response.text();
 
-    console.log("Firebase status:", response.status);
-    console.log("Firebase response:", text);
+    console.log(
+      "Firebase status:",
+      response.status
+    );
+
+    console.log(
+      "Firebase response:",
+      text
+    );
 
     if (!response.ok) {
-
       throw new Error(
         `Firebase HTTP ${response.status}: ${text}`
       );
@@ -133,7 +143,6 @@ async function firebaseRequest(path, options = {}) {
     return JSON.parse(text);
 
   } catch (error) {
-
     console.error(
       "FIREBASE ERROR:",
       error
@@ -144,11 +153,10 @@ async function firebaseRequest(path, options = {}) {
 }
 
 // ======================================================
-// ДОБАВЛЕНИЕ ЗАПИСИ
+// FIREBASE PUSH
 // ======================================================
 
 async function firebasePush(path, data) {
-
   return await firebaseRequest(
     path,
     {
@@ -159,17 +167,43 @@ async function firebasePush(path, data) {
 }
 
 // ======================================================
-// ПОЛУЧЕНИЕ ЗАПИСЕЙ
+// FIREBASE GET
 // ======================================================
 
 async function firebaseGet(path) {
-
   return await firebaseRequest(
     path,
     {
       method: "GET",
     }
   );
+}
+
+// ======================================================
+// FIREBASE DELETE
+// ======================================================
+
+async function firebaseDelete(path) {
+  return await firebaseRequest(
+    path,
+    {
+      method: "DELETE",
+    }
+  );
+}
+
+// ======================================================
+// ПРОВЕРКА АДМИНИСТРАТОРА
+// ======================================================
+
+function isAdmin(userId) {
+
+  if (!ADMIN_TELEGRAM_ID) {
+    return false;
+  }
+
+  return String(userId) ===
+    String(ADMIN_TELEGRAM_ID);
 }
 
 // ======================================================
@@ -187,16 +221,17 @@ bot.start(async (ctx) => {
     "для фотоархива «Объектив техникума».\n\n" +
 
     "📷 Опубликовать фотографию\n" +
-    "🖼️ Посмотреть свои публикации\n\n" +
+    "🖼️ Посмотреть свои публикации\n" +
+    "🗑️ Удалять свои публикации\n\n" +
 
     "Выбирай действие:",
-    
+
     mainKeyboard()
   );
 });
 
 // ======================================================
-// PUBLISH
+// PUBLISH COMMAND
 // ======================================================
 
 bot.command("publish", async (ctx) => {
@@ -214,7 +249,7 @@ bot.command("publish", async (ctx) => {
 });
 
 // ======================================================
-// КНОПКА PUBLISH
+// PUBLISH BUTTON
 // ======================================================
 
 bot.action("publish", async (ctx) => {
@@ -239,7 +274,8 @@ bot.action("publish", async (ctx) => {
 
 bot.on("photo", async (ctx) => {
 
-  const userId = ctx.from.id;
+  const userId =
+    ctx.from.id;
 
   const session =
     sessions.get(userId);
@@ -265,7 +301,8 @@ bot.on("photo", async (ctx) => {
   session.photoFileId =
     bestPhoto.file_id;
 
-  session.step = "title";
+  session.step =
+    "title";
 
   await ctx.reply(
     "✅ Фотография получена!\n\n" +
@@ -279,7 +316,8 @@ bot.on("photo", async (ctx) => {
 
 bot.on("text", async (ctx) => {
 
-  const userId = ctx.from.id;
+  const userId =
+    ctx.from.id;
 
   const text =
     ctx.message.text.trim();
@@ -309,9 +347,11 @@ bot.on("text", async (ctx) => {
 
   if (session.step === "title") {
 
-    session.title = text;
+    session.title =
+      text.substring(0, 200);
 
-    session.step = "category";
+    session.step =
+      "category";
 
     await ctx.reply(
       "📂 Выбери категорию:",
@@ -325,9 +365,11 @@ bot.on("text", async (ctx) => {
 
   if (session.step === "author") {
 
-    session.authorName = text;
+    session.authorName =
+      text.substring(0, 100);
 
-    session.step = "confirmation";
+    session.step =
+      "confirmation";
 
     await ctx.reply(
       "📸 Готово к публикации!\n\n" +
@@ -337,7 +379,7 @@ bot.on("text", async (ctx) => {
       `👤 Автор: ${session.authorName}\n\n` +
 
       "Всё правильно?",
-      
+
       confirmationKeyboard()
     );
 
@@ -377,7 +419,8 @@ bot.action(
     session.category =
       ctx.match[1];
 
-    session.step = "author";
+    session.step =
+      "author";
 
     await ctx.reply(
       "👤 Напиши имя автора фотографии."
@@ -386,7 +429,7 @@ bot.action(
 );
 
 // ======================================================
-// ПОДТВЕРЖДЕНИЕ
+// ПОДТВЕРЖДЕНИЕ ПУБЛИКАЦИИ
 // ======================================================
 
 bot.action(
@@ -415,10 +458,6 @@ bot.action(
 
       return;
     }
-
-    // ==================================================
-    // ДАННЫЕ ДЛЯ FIREBASE
-    // ==================================================
 
     const publication = {
 
@@ -468,7 +507,9 @@ bot.action(
         result
       );
 
-      sessions.delete(userId);
+      sessions.delete(
+        userId
+      );
 
       await ctx.editMessageText(
         "✅ Фотография успешно опубликована!\n\n" +
@@ -477,7 +518,7 @@ bot.action(
         `📂 ${publication.category}\n` +
         `👤 ${publication.authorName}\n\n` +
 
-        "🔥 Данные записаны в Firebase Realtime Database."
+        "🌐 Фотография появится на сайте автоматически."
       );
 
     } catch (error) {
@@ -487,11 +528,10 @@ bot.action(
         error
       );
 
-      // Показываем ошибку пользователю
-      // прямо в Telegram.
-
       const errorText =
-        String(error.message || error);
+        String(
+          error.message || error
+        );
 
       await ctx.reply(
         "❌ Firebase не разрешил сохранить фотографию.\n\n" +
@@ -501,7 +541,7 @@ bot.action(
         "```text\n" +
         errorText.substring(0, 3500) +
         "\n```",
-        
+
         {
           parse_mode: "Markdown"
         }
@@ -511,7 +551,7 @@ bot.action(
 );
 
 // ======================================================
-// ОТМЕНА
+// ОТМЕНА ПУБЛИКАЦИИ
 // ======================================================
 
 bot.action(
@@ -536,87 +576,110 @@ bot.action(
 );
 
 // ======================================================
-// MY PHOTOS
+// ПОЛУЧИТЬ ПУБЛИКАЦИИ ПОЛЬЗОВАТЕЛЯ
+// ======================================================
+
+async function getUserPublications(userId) {
+
+  const data =
+    await firebaseGet("photos");
+
+  if (!data) {
+    return [];
+  }
+
+  return Object.entries(data)
+
+    .map(
+      ([id, item]) => ({
+        id,
+        ...(item || {})
+      })
+    )
+
+    .filter(
+      item =>
+        String(
+          item.telegramUserId
+        ) ===
+        String(userId)
+    )
+
+    .sort(
+      (a, b) =>
+        Number(
+          b.createdAt || 0
+        ) -
+        Number(
+          a.createdAt || 0
+        )
+    );
+}
+
+// ======================================================
+// КНОПКА МОИ ПУБЛИКАЦИИ
+// ======================================================
+
+async function showMyPhotos(ctx) {
+
+  try {
+
+    const publications =
+      await getUserPublications(
+        ctx.from.id
+      );
+
+    if (
+      publications.length === 0
+    ) {
+
+      await ctx.reply(
+        "🖼️ У тебя пока нет публикаций."
+      );
+
+      return;
+    }
+
+    await ctx.reply(
+      `🖼️ Твои публикации: ${publications.length}\n\n` +
+      "Выбери фотографию:",
+      Markup.inlineKeyboard(
+        publications
+          .slice(0, 30)
+          .map((item, index) => [
+
+            Markup.button.callback(
+              `${index + 1}. 📸 ${item.title || "Без названия"}`,
+              `viewphoto:${item.id}`
+            )
+
+          ])
+      )
+    );
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+    await ctx.reply(
+      "❌ Не удалось получить публикации.\n\n" +
+      `Ошибка: ${error.message}`
+    );
+  }
+}
+
+// ======================================================
+// MY PHOTOS COMMAND
 // ======================================================
 
 bot.command(
   "myphotos",
   async (ctx) => {
 
-    try {
+    await showMyPhotos(ctx);
 
-      const data =
-        await firebaseGet(
-          "photos"
-        );
-
-      if (!data) {
-
-        await ctx.reply(
-          "🖼️ У тебя пока нет публикаций."
-        );
-
-        return;
-      }
-
-      const publications =
-        Object.values(data)
-          .filter(
-            item =>
-              String(
-                item.telegramUserId
-              ) ===
-              String(
-                ctx.from.id
-              )
-          )
-          .sort(
-            (a, b) =>
-              (b.createdAt || 0) -
-              (a.createdAt || 0)
-          );
-
-      if (
-        publications.length === 0
-      ) {
-
-        await ctx.reply(
-          "🖼️ У тебя пока нет публикаций."
-        );
-
-        return;
-      }
-
-      let message =
-        `🖼️ Твоих публикаций: ${publications.length}\n\n`;
-
-      publications
-        .slice(0, 20)
-        .forEach(
-          (item, index) => {
-
-            message +=
-              `${index + 1}. 📸 ${item.title}\n` +
-              `   📂 ${item.category}\n` +
-              `   👤 ${item.authorName}\n\n`;
-          }
-        );
-
-      await ctx.reply(
-        message
-      );
-
-    } catch (error) {
-
-      console.error(
-        error
-      );
-
-      await ctx.reply(
-        "❌ Не удалось получить публикации.\n\n" +
-        `Ошибка: ${error.message}`
-      );
-    }
   }
 );
 
@@ -630,6 +693,334 @@ bot.action(
 
     await ctx.answerCbQuery();
 
+    await showMyPhotos(ctx);
+
+  }
+);
+
+// ======================================================
+// ПРОСМОТР ФОТОГРАФИИ
+// ======================================================
+
+bot.action(
+  /^viewphoto:(.+)$/,
+  async (ctx) => {
+
+    await ctx.answerCbQuery();
+
+    const photoId =
+      ctx.match[1];
+
+    try {
+
+      const photo =
+        await firebaseGet(
+          `photos/${encodeURIComponent(photoId)}`
+        );
+
+      if (!photo) {
+
+        await ctx.reply(
+          "❌ Эта фотография уже удалена."
+        );
+
+        return;
+      }
+
+      const owner =
+        String(
+          photo.telegramUserId
+        ) ===
+        String(
+          ctx.from.id
+        );
+
+      const admin =
+        isAdmin(
+          ctx.from.id
+        );
+
+      if (!owner && !admin) {
+
+        await ctx.reply(
+          "❌ У тебя нет доступа к этой публикации."
+        );
+
+        return;
+      }
+
+      const imageUrl =
+        `${getPublicBaseUrl(ctx)}/photo/${encodeURIComponent(photo.telegramFileId)}`;
+
+
+      const buttons = [
+
+        [
+          Markup.button.callback(
+            "🗑️ Удалить фотографию",
+            `deletephoto:${photoId}`
+          )
+        ],
+
+        [
+          Markup.button.callback(
+            "⬅️ Назад",
+            "myphotos"
+          )
+        ]
+
+      ];
+
+
+      await ctx.replyWithPhoto(
+        {
+          url: imageUrl
+        },
+        {
+          caption:
+            "📸 " +
+            (photo.title || "Без названия") +
+            "\n\n" +
+
+            "📂 " +
+            (photo.category || "Другое") +
+            "\n" +
+
+            "👤 " +
+            (photo.authorName || "Автор не указан"),
+
+          ...Markup.inlineKeyboard(
+            buttons
+          )
+        }
+      );
+
+    } catch (error) {
+
+      console.error(
+        "VIEW PHOTO ERROR:",
+        error
+      );
+
+      await ctx.reply(
+        "❌ Не удалось открыть фотографию.\n\n" +
+        error.message
+      );
+    }
+  }
+);
+
+// ======================================================
+// ПОДТВЕРЖДЕНИЕ УДАЛЕНИЯ
+// ======================================================
+
+bot.action(
+  /^deletephoto:(.+)$/,
+  async (ctx) => {
+
+    await ctx.answerCbQuery();
+
+    const photoId =
+      ctx.match[1];
+
+    try {
+
+      const photo =
+        await firebaseGet(
+          `photos/${encodeURIComponent(photoId)}`
+        );
+
+      if (!photo) {
+
+        await ctx.reply(
+          "❌ Фотография уже удалена."
+        );
+
+        return;
+      }
+
+      const owner =
+        String(
+          photo.telegramUserId
+        ) ===
+        String(
+          ctx.from.id
+        );
+
+      const admin =
+        isAdmin(
+          ctx.from.id
+        );
+
+      if (!owner && !admin) {
+
+        await ctx.reply(
+          "❌ Ты не можешь удалить эту фотографию."
+        );
+
+        return;
+      }
+
+      await ctx.reply(
+        "⚠️ Удалить фотографию?\n\n" +
+
+        `📸 ${photo.title || "Без названия"}\n` +
+        `📂 ${photo.category || "Другое"}\n\n` +
+
+        "После удаления она исчезнет из фотоархива " +
+        "и больше не будет отображаться на сайте.",
+
+        Markup.inlineKeyboard([
+
+          [
+            Markup.button.callback(
+              "🗑️ Да, удалить",
+              `confirmdelete:${photoId}`
+            )
+          ],
+
+          [
+            Markup.button.callback(
+              "❌ Отмена",
+              `canceldelete:${photoId}`
+            )
+          ]
+
+        ])
+      );
+
+    } catch (error) {
+
+      console.error(
+        "DELETE CONFIRM ERROR:",
+        error
+      );
+
+      await ctx.reply(
+        "❌ Ошибка:\n\n" +
+        error.message
+      );
+    }
+  }
+);
+
+// ======================================================
+// ПОДТВЕРЖДЕНИЕ УДАЛЕНИЯ
+// ======================================================
+
+bot.action(
+  /^confirmdelete:(.+)$/,
+  async (ctx) => {
+
+    await ctx.answerCbQuery(
+      "Удаляем..."
+    );
+
+    const photoId =
+      ctx.match[1];
+
+    try {
+
+      const photo =
+        await firebaseGet(
+          `photos/${encodeURIComponent(photoId)}`
+        );
+
+      if (!photo) {
+
+        await ctx.editMessageText(
+          "❌ Фотография уже была удалена."
+        );
+
+        return;
+      }
+
+      const owner =
+        String(
+          photo.telegramUserId
+        ) ===
+        String(
+          ctx.from.id
+        );
+
+      const admin =
+        isAdmin(
+          ctx.from.id
+        );
+
+      if (!owner && !admin) {
+
+        await ctx.editMessageText(
+          "❌ У тебя нет прав на удаление этой фотографии."
+        );
+
+        return;
+      }
+
+      await firebaseDelete(
+        `photos/${encodeURIComponent(photoId)}`
+      );
+
+      await ctx.editMessageText(
+        "🗑️ Фотография удалена.\n\n" +
+
+        "Она больше не будет отображаться " +
+        "в фотоархиве на сайте."
+      );
+
+    } catch (error) {
+
+      console.error(
+        "DELETE ERROR:",
+        error
+      );
+
+      await ctx.reply(
+        "❌ Не удалось удалить фотографию.\n\n" +
+        error.message
+      );
+    }
+  }
+);
+
+// ======================================================
+// ОТМЕНА УДАЛЕНИЯ
+// ======================================================
+
+bot.action(
+  /^canceldelete:(.+)$/,
+  async (ctx) => {
+
+    await ctx.answerCbQuery();
+
+    await ctx.editMessageText(
+      "↩️ Удаление отменено."
+    );
+
+  }
+);
+
+// ======================================================
+// АДМИН: ВСЕ ФОТОГРАФИИ
+// ======================================================
+
+bot.command(
+  "admin",
+  async (ctx) => {
+
+    if (
+      !isAdmin(
+        ctx.from.id
+      )
+    ) {
+
+      await ctx.reply(
+        "⛔ У тебя нет доступа к админ-панели."
+      );
+
+      return;
+    }
+
     try {
 
       const data =
@@ -640,61 +1031,166 @@ bot.action(
       if (!data) {
 
         await ctx.reply(
-          "🖼️ У тебя пока нет публикаций."
+          "📭 В архиве пока нет фотографий."
         );
 
         return;
       }
 
       const publications =
-        Object.values(data)
-          .filter(
-            item =>
-              String(
-                item.telegramUserId
-              ) ===
-              String(
-                ctx.from.id
+        Object.entries(data)
+
+          .map(
+            ([id, item]) => ({
+              id,
+              ...(item || {})
+            })
+          )
+
+          .sort(
+            (a, b) =>
+              Number(
+                b.createdAt || 0
+              ) -
+              Number(
+                a.createdAt || 0
               )
           );
 
-      if (
-        publications.length === 0
-      ) {
-
-        await ctx.reply(
-          "🖼️ У тебя пока нет публикаций."
-        );
-
-        return;
-      }
-
-      let message =
-        `🖼️ Твоих публикаций: ${publications.length}\n\n`;
-
-      publications
-        .slice(0, 20)
-        .forEach(
-          (item, index) => {
-
-            message +=
-              `${index + 1}. 📸 ${item.title}\n` +
-              `   📂 ${item.category}\n` +
-              `   👤 ${item.authorName}\n\n`;
-          }
-        );
-
       await ctx.reply(
-        message
+        `👑 Админ-панель\n\n` +
+        `📸 Фотографий: ${publications.length}\n\n` +
+        "Выбери фотографию для управления:",
+
+        Markup.inlineKeyboard(
+          publications
+            .slice(0, 50)
+            .map(
+              (item, index) => [
+
+                Markup.button.callback(
+                  `${index + 1}. ${item.title || "Без названия"}`,
+                  `adminphoto:${item.id}`
+                )
+
+              ]
+            )
+        )
       );
 
     } catch (error) {
 
       await ctx.reply(
-        "❌ Ошибка Firebase:\n\n" +
+        "❌ Ошибка админ-панели:\n\n" +
         error.message
       );
     }
+  }
+);
+
+// ======================================================
+// АДМИН: ПРОСМОТР
+// ======================================================
+
+bot.action(
+  /^adminphoto:(.+)$/,
+  async (ctx) => {
+
+    await ctx.answerCbQuery();
+
+    if (
+      !isAdmin(
+        ctx.from.id
+      )
+    ) {
+
+      await ctx.reply(
+        "⛔ Нет доступа."
+      );
+
+      return;
+    }
+
+    const photoId =
+      ctx.match[1];
+
+    try {
+
+      const photo =
+        await firebaseGet(
+          `photos/${encodeURIComponent(photoId)}`
+        );
+
+      if (!photo) {
+
+        await ctx.reply(
+          "❌ Фотография не найдена."
+        );
+
+        return;
+      }
+
+      const imageUrl =
+        `${getPublicBaseUrl(ctx)}/photo/${encodeURIComponent(photo.telegramFileId)}`;
+
+
+      await ctx.replyWithPhoto(
+        {
+          url: imageUrl
+        },
+        {
+          caption:
+            "👑 АДМИН-ПАНЕЛЬ\n\n" +
+
+            `📸 ${photo.title || "Без названия"}\n` +
+            `📂 ${photo.category || "Другое"}\n` +
+            `👤 ${photo.authorName || "Не указан"}\n` +
+            `🆔 ${photo.telegramUserId}`,
+
+          ...Markup.inlineKeyboard([
+
+            [
+              Markup.button.callback(
+                "🗑️ Удалить",
+                `deletephoto:${photoId}`
+              )
+            ],
+
+            [
+              Markup.button.callback(
+                "⬅️ Назад",
+                "admin_back"
+              )
+            ]
+
+          ])
+        }
+      );
+
+    } catch (error) {
+
+      await ctx.reply(
+        "❌ Ошибка:\n\n" +
+        error.message
+      );
+    }
+  }
+);
+
+// ======================================================
+// АДМИН НАЗАД
+// ======================================================
+
+bot.action(
+  "admin_back",
+  async (ctx) => {
+
+    await ctx.answerCbQuery();
+
+    await ctx.reply(
+      "👑 Для открытия админ-панели используй /admin"
+    );
+
   }
 );
 
@@ -712,6 +1208,7 @@ bot.command(
       "/start — главное меню\n" +
       "/publish — опубликовать фотографию\n" +
       "/myphotos — мои публикации\n" +
+      "/admin — админ-панель\n" +
       "/cancel — отменить публикацию\n" +
       "/help — помощь"
     );
@@ -728,54 +1225,273 @@ bot.action(
       "❓ Помощь\n\n" +
 
       "📸 Опубликовать фотографию — " +
-      "загрузить фотографию\n\n" +
+      "загрузить фотографию.\n\n" +
 
       "🖼️ Мои публикации — " +
-      "посмотреть свои фотографии\n\n" +
+      "посмотреть свои фотографии.\n\n" +
 
-      "/cancel — отменить публикацию"
+      "🗑️ Удаление — " +
+      "можно удалить свою фотографию.\n\n" +
+
+      "👑 Администратор может удалять любые фотографии.\n\n" +
+
+      "/cancel — отменить публикацию."
     );
   }
 );
 
 // ======================================================
-// ОШИБКИ
+// PUBLIC URL
 // ======================================================
 
-bot.catch(
-  (error) => {
+function getPublicBaseUrl(ctx) {
 
-    console.error(
-      "❌ Ошибка Telegram:",
-      error
-    );
+  // Если указать PUBLIC_URL на Render,
+  // используется он.
+
+  if (process.env.PUBLIC_URL) {
+
+    return process.env.PUBLIC_URL
+      .replace(/\/$/, "");
+
   }
-);
+
+  // Render автоматически даёт
+  // RENDER_EXTERNAL_URL.
+
+  if (process.env.RENDER_EXTERNAL_URL) {
+
+    return process.env.RENDER_EXTERNAL_URL
+      .replace(/\/$/, "");
+
+  }
+
+  // Локальный вариант.
+
+  return "http://localhost:" +
+    (
+      Number(process.env.PORT) ||
+      10000
+    );
+}
 
 // ======================================================
-// HTTP SERVER ДЛЯ RENDER
+// ПОЛУЧЕНИЕ ФОТОГРАФИИ ИЗ TELEGRAM
+// ======================================================
+
+async function getTelegramFileUrl(
+  fileId
+) {
+
+  const apiUrl =
+    `https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${encodeURIComponent(fileId)}`;
+
+  const response =
+    await fetch(apiUrl);
+
+  if (!response.ok) {
+
+    throw new Error(
+      `Telegram getFile HTTP ${response.status}`
+    );
+
+  }
+
+  const data =
+    await response.json();
+
+  if (
+    !data.ok ||
+    !data.result ||
+    !data.result.file_path
+  ) {
+
+    throw new Error(
+      "Telegram не вернул file_path"
+    );
+
+  }
+
+  return (
+    `https://api.telegram.org/file/bot${BOT_TOKEN}/${data.result.file_path}`
+  );
+}
+
+// ======================================================
+// HTTP SERVER
 // ======================================================
 
 const PORT =
-  Number(process.env.PORT) || 10000;
+  Number(process.env.PORT) ||
+  10000;
 
 const server =
   http.createServer(
-    (req, res) => {
+    async (req, res) => {
 
-      res.writeHead(
-        200,
-        {
-          "Content-Type":
-            "text/plain; charset=utf-8",
+      try {
+
+        // ==================================================
+        // HEALTH CHECK
+        // ==================================================
+
+        if (
+          req.url === "/" ||
+          req.url === "/health"
+        ) {
+
+          res.writeHead(
+            200,
+            {
+              "Content-Type":
+                "text/plain; charset=utf-8",
+            }
+          );
+
+          res.end(
+            "СТИ ФотоБот работает! 📸"
+          );
+
+          return;
         }
-      );
 
-      res.end(
-        "СТИ ФотоБот работает! 📸"
-      );
+        // ==================================================
+        // ФОТО PROXY
+        // ==================================================
+
+        if (
+          req.url.startsWith(
+            "/photo/"
+          )
+        ) {
+
+          const fileId =
+            decodeURIComponent(
+              req.url
+                .substring(
+                  "/photo/".length
+                )
+                .split("?")[0]
+            );
+
+          if (!fileId) {
+
+            res.writeHead(
+              400
+            );
+
+            res.end(
+              "File ID отсутствует"
+            );
+
+            return;
+          }
+
+          console.log(
+            "Получаем Telegram photo:",
+            fileId
+          );
+
+          const telegramUrl =
+            await getTelegramFileUrl(
+              fileId
+            );
+
+          const imageResponse =
+            await fetch(
+              telegramUrl
+            );
+
+          if (
+            !imageResponse.ok
+          ) {
+
+            throw new Error(
+              `Telegram image HTTP ${imageResponse.status}`
+            );
+
+          }
+
+          const contentType =
+            imageResponse.headers.get(
+              "content-type"
+            ) ||
+            "image/jpeg";
+
+          const buffer =
+            Buffer.from(
+              await imageResponse.arrayBuffer()
+            );
+
+          res.writeHead(
+            200,
+            {
+              "Content-Type":
+                contentType,
+
+              "Content-Length":
+                buffer.length,
+
+              "Cache-Control":
+                "public, max-age=86400",
+
+              "Access-Control-Allow-Origin":
+                "*",
+            }
+          );
+
+          res.end(
+            buffer
+          );
+
+          return;
+        }
+
+        // ==================================================
+        // 404
+        // ==================================================
+
+        res.writeHead(
+          404,
+          {
+            "Content-Type":
+              "text/plain; charset=utf-8",
+          }
+        );
+
+        res.end(
+          "404 Not Found"
+        );
+
+      } catch (error) {
+
+        console.error(
+          "HTTP ERROR:",
+          error
+        );
+
+        if (!res.headersSent) {
+
+          res.writeHead(
+            500,
+            {
+              "Content-Type":
+                "text/plain; charset=utf-8",
+            }
+          );
+
+        }
+
+        res.end(
+          "Ошибка загрузки фотографии"
+        );
+      }
     }
   );
+
+// ======================================================
+// SERVER START
+// ======================================================
 
 server.listen(
   PORT,
@@ -785,11 +1501,16 @@ server.listen(
     console.log(
       `🌐 Server started on port ${PORT}`
     );
+
+    console.log(
+      `📸 Photo proxy: /photo/:fileId`
+    );
+
   }
 );
 
 // ======================================================
-// ЗАПУСК TELEGRAM BOT
+// TELEGRAM BOT START
 // ======================================================
 
 bot.launch()
@@ -810,8 +1531,16 @@ bot.launch()
       );
 
       console.log(
+        "👑 Admin:",
+        ADMIN_TELEGRAM_ID
+          ? "настроен"
+          : "не настроен"
+      );
+
+      console.log(
         "================================"
       );
+
     }
   )
   .catch(
@@ -823,11 +1552,12 @@ bot.launch()
       );
 
       process.exit(1);
+
     }
   );
 
 // ======================================================
-// ЗАВЕРШЕНИЕ
+// SHUTDOWN
 // ======================================================
 
 process.once(
